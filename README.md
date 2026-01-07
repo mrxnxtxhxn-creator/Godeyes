@@ -2,219 +2,209 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GOD'S EYE | DHL Real-Time</title>
+    <title>OLHO DE DEUS | DHL CONTROL TOWER</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@400;900&display=swap" rel="stylesheet">
     
     <style>
-        /* ESTILO DARK MODE */
-        body { background-color: #0e1117; color: #e0e0e0; font-family: 'Roboto', sans-serif; padding: 20px; }
-        h1, h2, h3 { font-family: 'Orbitron', sans-serif; margin: 0; }
+        /* ESTILO COMANDO MILITAR DARK */
+        body { background-color: #000; color: #fff; font-family: 'Roboto', sans-serif; margin: 0; padding: 15px; overflow: hidden; }
         
-        /* Cabeçalho */
-        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 20px; }
-        .logo { color: #ffcc00; font-size: 24px; letter-spacing: 2px; }
-        .live-indicator { color: #ff0000; font-weight: bold; display: flex; align-items: center; gap: 5px; }
-        .dot { height: 10px; width: 10px; background-color: #f00; border-radius: 50%; display: inline-block; animation: blink 1.5s infinite; }
-        @keyframes blink { 50% { opacity: 0; } }
+        /* HEADER */
+        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 15px; }
+        .logo { font-family: 'Orbitron', sans-serif; font-size: 26px; color: #ffcc00; letter-spacing: 2px; text-shadow: 0 0 10px #ffcc00; }
+        .status-badge { background: #111; border: 1px solid #333; padding: 5px 15px; font-size: 12px; color: #888; border-radius: 4px; }
+        .blink { animation: blinker 1.5s linear infinite; color: red; font-weight: bold; }
+        @keyframes blinker { 50% { opacity: 0; } }
 
-        /* Grid */
-        .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-        .card { background-color: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-
-        /* Sugestões */
-        .action-box { background-color: #2a0e0e; border-left: 5px solid #ff4444; padding: 15px; margin-top: 15px; border-radius: 4px; }
-        .move-from { color: #00ff00; font-weight: bold; }
-        .move-to { color: #ff4444; font-weight: bold; }
-        .count { font-size: 1.5em; color: white; }
-        .ok-box { background-color: #0e2a15; border-left: 5px solid #00ff00; padding: 15px; color: #aaffaa; }
-
-        /* Tabela */
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9em; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #333; }
-        th { background-color: #21262d; color: #8b949e; }
-        .status-critico { color: #ff4444; font-weight: bold; }
-        .status-ocioso { color: #00ff00; font-weight: bold; }
-        .status-estavel { color: #58a6ff; }
+        /* LAYOUT PRINCIPAL */
+        .main-grid { display: grid; grid-template-columns: 65% 35%; gap: 20px; height: 85vh; }
         
-        #lastUpdate { font-size: 0.8em; color: #666; }
+        /* ÁREA DO MAPA */
+        .map-box { background: #0a0a0a; border: 1px solid #333; border-radius: 8px; position: relative; }
+        
+        /* ÁREA DE COMANDO (DIREITA) */
+        .command-box { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; padding-right: 5px; }
 
-        @media (max-width: 768px) { .dashboard-grid { grid-template-columns: 1fr; } }
+        /* CARTÕES DE ILHA (HUD) */
+        .hud-card { 
+            background: #111; border-left: 5px solid #444; 
+            padding: 15px; margin-bottom: 10px; border-radius: 4px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5); transition: all 0.3s;
+        }
+        
+        .hud-header { display: flex; justify-content: space-between; font-family: 'Orbitron'; font-size: 18px; margin-bottom: 8px; }
+        .hud-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; font-size: 12px; color: #aaa; text-align: center; }
+        .hud-val { font-size: 16px; font-weight: bold; color: #fff; display: block; }
+        
+        /* BARRA DE PROGRESSO (TEMPO RESTANTE) */
+        .progress-bg { height: 6px; background: #333; margin-top: 10px; border-radius: 3px; }
+        .progress-bar { height: 100%; transition: width 1s; border-radius: 3px; }
+
+        /* ALERTAS CRÍTICOS */
+        .critico { border-color: #ff0000; background: #1a0000; animation: shake 0.5s; }
+        .alerta-acao { 
+            background: #ff0000; color: #fff; text-align: center; 
+            font-weight: bold; padding: 5px; margin-top: 10px; border-radius: 3px; 
+            font-size: 14px; letter-spacing: 1px;
+        }
+
+        .ok { border-color: #00ff00; }
+        .atencao { border-color: #ffff00; }
+
+        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(5px); } 75% { transform: translateX(-5px); } 100% { transform: translateX(0); } }
+
     </style>
 </head>
 <body>
 
     <header>
-        <div class="logo">👁️ GOD'S EYE <span style="font-size:0.6em; color:#888;">| REAL-TIME</span></div>
-        <div class="live-indicator"><span class="dot"></span> AO VIVO</div>
+        <div class="logo">👁️ OLHO DE DEUS <span style="font-size:12px; color:#666;">v4.0 LIVE</span></div>
+        <div class="status-badge"><span class="blink">●</span> CONECTADO À PLANILHA</div>
     </header>
 
-    <div class="dashboard-grid">
-        <div class="card">
-            <h2>📍 MAPA DA OPERAÇÃO</h2>
-            <div id="warehouseMap" style="width:100%; height:450px;"></div>
-            <div id="lastUpdate">Aguardando dados...</div>
+    <div class="main-grid">
+        <div class="map-box">
+            <div id="tactical-map" style="width:100%; height:100%;"></div>
+            <div style="position:absolute; bottom:10px; left:10px; font-size:11px; color:#555;">
+                Tamanho da Bolha = Volume Atual | Cor = Risco de Atraso
+            </div>
         </div>
 
-        <div class="card">
-            <h2>🔮 O PROFETA SUGERE</h2>
-            <div id="prophetSuggestions">Carregando inteligência...</div>
+        <div class="command-box" id="hud-container">
+            <div style="text-align:center; padding:50px; color:#666;">
+                Aguardando sincronização com a planilha...
+            </div>
         </div>
-    </div>
-
-    <div class="card" style="margin-top: 20px;">
-        <h3>📋 DADOS DA PLANILHA</h3>
-        <table id="dataTable">
-            <thead>
-                <tr>
-                    <th>Ilha</th><th>Volume</th><th>Equipe</th><th>Horas Restantes</th><th>Status</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
     </div>
 
     <script>
-        // ======================================================================
-        // 🚨 COLE SEU LINK DA PLANILHA (CSV) AQUI EMBAIXO:
-        // ======================================================================
-        const SHEET_URL = 'COLE_SEU_LINK_DO_PASSO_2_AQUI'; 
-        // Exemplo: 'https://docs.google.com/spreadsheets/d/e/2PACX-.../pub?output=csv'
-        
-        // Configuração de Intervalo (Atualiza a cada 30 segundos)
-        const UPDATE_INTERVAL_MS = 30000; 
+        // ====================================================================
+        // 🔴 PASSO CRUCIAL: COLE O LINK CSV DA SUA PLANILHA AQUI EMBAIXO:
+        const SHEET_URL = 'COLE_SEU_LINK_AQUI';
+        // Exemplo: 'https://docs.google.com/spreadsheets/d/e/2PAC.../pub?output=csv'
+        // ====================================================================
 
-        function fetchData() {
-            if (SHEET_URL.includes('COLE_SEU_LINK')) {
-                alert("Você esqueceu de colar o link da planilha no código!");
-                return;
-            }
+        // Atualiza a cada 3 segundos (Tempo Real)
+        setInterval(() => {
+            if(!SHEET_URL.includes('COLE')) loadOperations();
+        }, 3000);
 
-            console.log("Buscando atualizações...");
-            
+        function loadOperations() {
             Papa.parse(SHEET_URL, {
-                download: true,
-                header: true,
-                dynamicTyping: true, // Converte números automaticamente
-                complete: function(results) {
-                    processData(results.data);
-                },
-                error: function(err) {
-                    console.error("Erro ao ler planilha:", err);
-                }
+                download: true, header: true, dynamicTyping: true,
+                complete: (results) => renderTacticalView(results.data),
+                error: (err) => console.log("Erro leitura:", err)
             });
         }
 
-        function processData(rawData) {
-            let criticalNodes = [];
-            let idleNodes = [];
-            let plotDataX = [], plotDataY = [], plotSize = [], plotColor = [], plotText = [];
-            
-            const tableBody = document.querySelector("#dataTable tbody");
-            const suggestionsDiv = document.getElementById("prophetSuggestions");
-            
-            tableBody.innerHTML = ""; // Limpa tabela antiga
+        function renderTacticalView(data) {
+            const container = document.getElementById('hud-container');
+            container.innerHTML = ""; 
 
-            rawData.forEach(row => {
-                // Validação básica para ignorar linhas vazias
-                if(!row.Ilha || !row.Volume) return;
+            let mapX=[], mapY=[], mapSize=[], mapColor=[], mapText=[];
+            
+            // Ordena para mostrar os críticos primeiro
+            let processedData = data.filter(r => r.Setor && r.Volume).map(row => {
+                // 1. CÁLCULO DE POTÊNCIA (Quantos pacotes a equipe mata por minuto)
+                let powerPerMinute = row.Equipe * row.Velocidade; 
+                if(powerPerMinute === 0) powerPerMinute = 1; // Evita divisão por zero
 
-                // Cálculos Matemáticos
-                let capacidadeTotal = row.Equipe * row.Capacidade;
-                let horasParaZerar = (row.Volume / capacidadeTotal).toFixed(1);
+                // 2. TEMPO RESTANTE (Realidade)
+                let minutesLeft = row.Volume / powerPerMinute;
+
+                // 3. DEFINE STATUS
+                let status = "NORMAL";
+                if (minutesLeft > row.Meta) status = "CRITICO";
+                else if (minutesLeft < (row.Meta * 0.5)) status = "FOLGADO";
+
+                return { ...row, minutesLeft, status, powerPerMinute };
+            });
+
+            // Ordena: Críticos no topo
+            processedData.sort((a, b) => (a.status === 'CRITICO' ? -1 : 1));
+
+            processedData.forEach(row => {
+                let cssClass = "ok";
+                let colorHex = "#00ff00";
+                let actionMsg = "";
+                let progressColor = "#00ff00";
+
+                // LÓGICA DO PROFETA (O que fazer?)
+                if (row.status === "CRITICO") {
+                    cssClass = "critico";
+                    colorHex = "#ff0000";
+                    progressColor = "#ff0000";
+                    
+                    // Cálculo: Quantas pessoas faltam?
+                    let neededSpeed = row.Volume / row.Meta; // Velocidade necessária para bater a meta
+                    let peopleNeeded = Math.ceil(neededSpeed / row.Velocidade);
+                    let add = peopleNeeded - row.Equipe;
+                    
+                    actionMsg = `🚨 ADICIONAR +${add} PESSOAS AGORA`;
+                } else if (row.status === "FOLGADO") {
+                    cssClass = "atencao"; // Amarelo
+                    colorHex = "#ffff00";
+                    progressColor = "#ffff00";
+                    actionMsg = "📉 PODE REDUZIR EQUIPE";
+                }
+
+                // DADOS PARA O MAPA
+                mapX.push(row.X); mapY.push(row.Y);
+                mapSize.push(Math.min(row.Volume/10, 80) + 10);
+                mapColor.push(colorHex);
+                mapText.push(`<b>${row.Setor}</b><br>Vol: ${row.Volume}<br>Restam: ${row.minutesLeft.toFixed(0)}m`);
+
+                // CRIA O CARD DO HUD
+                let card = `
+                <div class="hud-card ${cssClass}">
+                    <div class="hud-header">
+                        <span>${row.Setor}</span>
+                        <span style="color:${colorHex}">${row.minutesLeft.toFixed(0)} min</span>
+                    </div>
+                    
+                    <div class="hud-metrics">
+                        <div><span class="hud-val">${row.Volume}</span>PCTS</div>
+                        <div><span class="hud-val">${row.Equipe}</span>PESSOAS</div>
+                        <div><span class="hud-val">${row.Velocidade}</span>VEL/MIN</div>
+                    </div>
+
+                    ${actionMsg ? `<div class="alerta-acao">${actionMsg}</div>` : ''}
+
+                    <div class="progress-bg">
+                        <div class="progress-bar" style="width: ${Math.min((row.minutesLeft/row.Meta)*100, 100)}%; background:${progressColor}"></div>
+                    </div>
+                    <div style="text-align:right; font-size:10px; color:#666; margin-top:5px;">META: ${row.Meta} min</div>
+                </div>`;
                 
-                // Lógica de Status
-                let status = "ESTÁVEL";
-                let statusClass = "status-estavel";
-                let bubbleColor = "#58a6ff"; 
-
-                if (horasParaZerar > 4) {
-                    status = "CRÍTICO (Gargalo)";
-                    statusClass = "status-critico";
-                    bubbleColor = "#ff4444";
-                    criticalNodes.push(row);
-                } else if (horasParaZerar < 1) {
-                    status = "OCIOSO (Sobra)";
-                    statusClass = "status-ocioso";
-                    bubbleColor = "#00ff00";
-                    idleNodes.push(row);
-                }
-
-                // Dados para o Mapa
-                plotDataX.push(row.X);
-                plotDataY.push(row.Y);
-                plotSize.push(horasParaZerar * 15);
-                plotColor.push(bubbleColor);
-                plotText.push(`<b>${row.Ilha}</b><br>Fila: ${horasParaZerar}h`);
-
-                // Preenche Tabela
-                let tr = `<tr>
-                    <td>${row.Ilha}</td><td>${row.Volume}</td><td>${row.Equipe}</td>
-                    <td>${horasParaZerar}h</td><td class="${statusClass}">${status}</td>
-                </tr>`;
-                tableBody.innerHTML += tr;
+                container.innerHTML += card;
             });
 
-            updateMap(plotDataX, plotDataY, plotText, plotSize, plotColor);
-            updateProphet(criticalNodes, idleNodes);
-            
-            // Atualiza hora
-            let now = new Date();
-            document.getElementById("lastUpdate").innerText = "Última atualização: " + now.toLocaleTimeString();
+            updateTacticalMap(mapX, mapY, mapSize, mapColor, mapText);
         }
 
-        function updateMap(x, y, text, size, color) {
-            var trace1 = {
-                x: x, y: y, text: text,
+        function updateTacticalMap(x, y, s, c, t) {
+            var data = [{
+                x: x, y: y, text: t,
                 mode: 'markers+text', textposition: 'top center',
-                marker: { size: size, color: color, opacity: 0.8, line: { color: 'white', width: 1 } },
+                marker: { size: s, color: c, opacity: 0.8, line: {color: '#fff', width: 1} },
                 type: 'scatter', hoverinfo: 'text'
-            };
-
+            }];
             var layout = {
                 paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
-                showlegend: false,
-                xaxis: { showgrid: false, zeroline: false, showticklabels: false, range: [0, 8] },
-                yaxis: { showgrid: false, zeroline: false, showticklabels: false, range: [0, 6] },
-                margin: { l: 20, r: 20, b: 20, t: 20 }, font: { color: '#ffffff' }
+                showlegend: false, xaxis: {visible:false, range:[0,11]}, yaxis: {visible:false, range:[0,6]},
+                margin: {l:0,r:0,t:0,b:0}, font:{color:'#fff'}
             };
-
-            Plotly.newPlot('warehouseMap', [trace1], layout, {displayModeBar: false});
+            Plotly.react('tactical-map', data, layout, {displayModeBar: false});
         }
-
-        function updateProphet(criticos, ociosos) {
-            const div = document.getElementById("prophetSuggestions");
-            div.innerHTML = "";
-
-            if (criticos.length > 0 && ociosos.length > 0) {
-                criticos.forEach(crit => {
-                    let idle = ociosos[0]; 
-                    let card = `
-                        <div class="action-box">
-                            <div style="font-weight:bold; color:#ff9999">🚨 AÇÃO RECOMENDADA</div>
-                            <p>Salvar ilha <b>${crit.Ilha}</b>:</p>
-                            <div style="display:flex; justify-content:space-between;">
-                                <div>MOVER <span class="count">2</span> Pessoas</div>
-                                <div style="text-align:right;">
-                                    DE: <span class="move-from">${idle.Ilha}</span><br>
-                                    PARA: <span class="move-to">${crit.Ilha}</span>
-                                </div>
-                            </div>
-                        </div>`;
-                    div.innerHTML += card;
-                });
-            } else if (criticos.length === 0) {
-                div.innerHTML = `<div class="ok-box">✅ Operação Fluindo!</div>`;
-            } else {
-                div.innerHTML = `<div class="action-box" style="border-color:orange;">⚠️ Faltam recursos! Sem ilhas ociosas.</div>`;
-            }
+        
+        // Check inicial
+        if(SHEET_URL.includes('COLE')) {
+            document.getElementById('hud-container').innerHTML = "<h3 style='text-align:center; color:red'>ERRO: Cole o link CSV da sua planilha no código!</h3>";
+        } else {
+            loadOperations();
         }
-
-        // Inicia o sistema
-        fetchData();
-        setInterval(fetchData, UPDATE_INTERVAL_MS); // Roda a cada 30s
     </script>
 </body>
 </html>
