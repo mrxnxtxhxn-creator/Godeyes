@@ -2,382 +2,384 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>OLHO DE DEUS | DHL CONTROL TOWER</title>
+    <title>OLHO DE DEUS | ULTIMATE COMMAND CENTER</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@300;400;900&display=swap" rel="stylesheet">
     
     <style>
-        /* ESTILO PROFISSIONAL (Glassmorphism) */
+        /* --- ESTÉTICA GLOBAL (CYBERPUNK TÁTICO) --- */
         :root {
             --primary: #ffcc00; /* Amarelo DHL */
-            --bg-dark: #0f0f13;
-            --glass: rgba(255, 255, 255, 0.05);
-            --border: rgba(255, 255, 255, 0.1);
+            --danger: #ff3333;
+            --success: #00ff00;
+            --bg-dark: #0a0a0e;
+            --glass: rgba(20, 20, 30, 0.7);
+            --border: rgba(255, 204, 0, 0.2);
         }
 
         body { 
             background-color: var(--bg-dark); 
-            background-image: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #000 100%);
+            background-image: 
+                linear-gradient(rgba(10, 10, 16, 0.9), rgba(10, 10, 16, 0.9)), 
+                url('https://www.transparenttextures.com/patterns/cubes.png'); /* Textura de fundo */
             color: #fff; 
             font-family: 'Roboto', sans-serif; 
-            margin: 0; 
-            padding: 20px; 
-            height: 100vh;
-            overflow: hidden;
-            box-sizing: border-box;
+            margin: 0; padding: 0; 
+            height: 100vh; overflow: hidden; 
         }
         
-        /* HEADER REESTRUTURADO */
+        /* CONTAINER PRINCIPAL */
+        #app-container {
+            display: flex; flex-direction: column; height: 100vh; padding: 15px; box-sizing: border-box; transition: padding 0.5s;
+        }
+
+        /* --- CABEÇALHO --- */
         header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; /* Centraliza verticalmente */
-            background: var(--glass);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--border);
-            padding: 10px 25px; /* Menos padding vertical para compensar a altura do input */
-            border-radius: 12px;
-            margin-bottom: 20px; 
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-            height: 100px; /* Altura fixa para manter o design estável */
+            display: flex; justify-content: space-between; align-items: center; 
+            background: var(--glass); backdrop-filter: blur(10px); 
+            border: 1px solid var(--border); border-radius: 8px; 
+            padding: 10px 20px; margin-bottom: 15px; flex-shrink: 0;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            transition: margin-top 0.5s;
         }
 
-        .brand-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
+        .brand-group { display: flex; align-items: center; gap: 15px; }
+        .brand-icon { font-size: 36px; filter: drop-shadow(0 0 8px var(--primary)); }
+        .brand-title { font-family: 'Orbitron'; font-size: 22px; color: var(--primary); line-height: 1; }
+        .brand-sub { font-size: 10px; letter-spacing: 3px; color: #888; text-transform: uppercase; }
 
-        .brand-icon {
-            font-size: 38px;
-            filter: drop-shadow(0 0 5px rgba(255, 204, 0, 0.5));
+        /* ÁREA DE CONEXÃO (Bloco Compacto) */
+        .connect-box { display: flex; flex-direction: column; gap: 5px; width: 250px; }
+        #sheet-input { 
+            background: rgba(0,0,0,0.5); border: 1px solid #444; color: #fff; 
+            padding: 5px 10px; font-size: 11px; text-align: center; border-radius: 4px; 
         }
-
-        .brand-text {
-            display: flex;
-            flex-direction: column;
+        .btn-row { display: flex; gap: 5px; }
+        .btn { 
+            flex: 1; border: none; padding: 6px; font-weight: bold; font-size: 11px; 
+            cursor: pointer; border-radius: 3px; font-family: 'Orbitron'; transition: 0.2s; 
         }
+        #btn-connect { background: var(--primary); color: #000; }
+        #btn-tv { background: #333; color: #fff; border: 1px solid #555; }
+        #btn-tv:hover { background: #fff; color: #000; }
 
-        .brand-title { 
-            font-family: 'Orbitron', sans-serif; 
-            font-size: 24px; 
-            color: var(--primary); 
-            letter-spacing: 2px;
-            line-height: 1;
-            font-weight: 700;
-        }
-
-        .brand-subtitle {
-            font-size: 10px; 
-            color: #888; 
-            letter-spacing: 3px;
-            margin-top: 5px;
-            font-weight: 300;
-        }
-
-        /* ÁREA DE CONEXÃO (AJUSTADA: BOTÃO EMBAIXO) */
-        .connection-area {
-            display: flex;
-            flex-direction: column; /* Empilha verticalmente */
-            gap: 8px;
-            align-items: stretch; /* Estica os itens */
-            background: rgba(0,0,0,0.2);
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            width: 300px;
-        }
-
-        #sheet-input {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #fff;
-            padding: 8px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            outline: none;
-            text-align: center;
-            transition: border 0.3s;
-        }
-        #sheet-input:focus { border-color: var(--primary); }
-
-        #connect-btn {
-            background: var(--primary);
-            color: #000;
-            border: none;
-            padding: 8px 0; /* Padding vertical apenas */
-            border-radius: 4px;
-            font-weight: 900;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        #connect-btn:hover { background: #e6b800; transform: translateY(-1px); }
-
-        /* GRID PRINCIPAL */
+        /* --- GRID PRINCIPAL --- */
         .main-grid { 
-            display: grid; 
-            grid-template-columns: 70% 30%; 
-            gap: 20px; 
-            height: calc(100vh - 160px); /* Ajuste de altura */
+            display: grid; grid-template-columns: 2fr 1fr; gap: 15px; 
+            flex-grow: 1; overflow: hidden; margin-bottom: 35px; /* Espaço para o Ticker */
         }
-        
-        /* BLOCOS */
+
+        /* PAINÉIS */
         .panel { 
-            background: var(--glass);
-            border: 1px solid var(--border);
-            border-radius: 12px; 
-            position: relative; 
-            overflow: hidden;
-            backdrop-filter: blur(5px);
+            background: var(--glass); border: 1px solid #333; border-radius: 8px; 
+            position: relative; overflow: hidden; display: flex; flex-direction: column;
         }
+
+        /* --- MAPA TÁTICO --- */
+        #tactical-map { flex-grow: 1; width: 100%; }
+        .map-bg { 
+            /* Grid Tático de Fundo no Mapa */
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        /* --- HUD (LISTA LATERAL) --- */
+        .hud-scroll { overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
         
-        /* MAPA */
-        #tactical-map { width: 100%; height: 100%; }
-
-        /* PAINEL LATERAL (HUD) */
-        .hud-container { 
-            padding: 15px; 
-            overflow-y: auto; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 12px; 
+        /* CARTÕES */
+        .card { 
+            background: rgba(0,0,0,0.6); border-left: 4px solid #555; padding: 10px; 
+            border-radius: 4px; position: relative; 
         }
-
-        /* CARTÕES DAS ILHAS */
-        .island-card { 
-            background: rgba(0, 0, 0, 0.4); 
-            border-left: 4px solid #444; 
-            padding: 15px; 
-            border-radius: 6px; 
-            transition: transform 0.2s;
-            margin-bottom: 5px;
-        }
-        .island-card:hover { transform: translateX(5px); background: rgba(255,255,255,0.03); }
+        .card-top { display: flex; justify-content: space-between; font-family: 'Orbitron'; font-size: 14px; margin-bottom: 5px; }
+        .card-stats { display: flex; justify-content: space-between; font-size: 11px; color: #aaa; }
+        .val { color: #fff; font-weight: bold; font-size: 14px; }
         
-        .card-top { display: flex; justify-content: space-between; margin-bottom: 10px; font-family: 'Orbitron'; font-size: 16px; }
+        /* BARRAS E ALERTAS */
+        .progress-track { height: 4px; background: #222; margin-top: 8px; border-radius: 2px; }
+        .progress-fill { height: 100%; transition: width 1s; }
         
-        .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px; color: #aaa; margin-bottom: 10px; }
-        .metric-val { font-size: 18px; color: #fff; font-weight: bold; }
+        .alert-badge { 
+            margin-top: 8px; padding: 6px; text-align: center; font-weight: bold; 
+            font-size: 12px; border-radius: 3px; animation: pulse 1s infinite;
+            border: 1px solid;
+        }
+
+        /* --- TICKER (RODAPÉ) --- */
+        .ticker-wrap {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 35px; 
+            background: #000; border-top: 2px solid var(--primary); 
+            display: flex; align-items: center; overflow: hidden; z-index: 100;
+        }
+        .ticker-move { display: inline-block; white-space: nowrap; animation: ticker 30s linear infinite; }
+        .ticker-item { display: inline-block; padding: 0 50px; font-family: 'Orbitron'; font-size: 14px; color: var(--primary); }
         
-        /* ALERTAS VISUAIS */
-        .action-alert { 
-            background: linear-gradient(90deg, #300, #500); 
-            border: 1px solid #ff0000; 
-            color: #ffcccc; 
-            padding: 8px; 
-            text-align: center; 
-            font-weight: bold; 
-            font-size: 13px; 
-            border-radius: 4px;
-            animation: pulse 2s infinite;
-            margin-bottom: 10px;
-        }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); } }
+        @keyframes ticker { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
 
-        /* STATUS CORES */
-        .st-critico { border-color: #ff3333; }
-        .st-ok { border-color: #00ff00; }
-        .st-atencao { border-color: #ffff00; }
+        /* CORES DE STATUS */
+        .st-crit { border-color: var(--danger); }
+        .bg-crit { background: var(--danger); color: #fff; }
+        .st-ok { border-color: var(--success); }
+        .st-warn { border-color: #ffcc00; }
+        .bg-warn { background: #ffcc00; color: #000; }
 
-        /* BARRA DE PROGRESSO */
-        .progress-bar { height: 4px; background: #333; border-radius: 2px; overflow: hidden; }
-        .fill { height: 100%; width: 50%; transition: width 1s ease-in-out; }
+        /* MODO FULLSCREEN */
+        body.tv-mode #app-container { padding: 0; }
+        body.tv-mode header { margin-top: -100px; } /* Esconde Header */
+        body.tv-mode .main-grid { height: 100vh; border-radius: 0; margin-bottom: 35px; }
+        body.tv-mode .panel { border-radius: 0; border: none; }
 
-        /* SCROLLBAR PERSONALIZADA */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #555; }
-
-        /* MENSAGEM INICIAL */
-        .empty-state {
-            display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #666; text-align: center;
-        }
-        .empty-icon { font-size: 48px; margin-bottom: 15px; opacity: 0.5; }
+        /* Empty State */
+        .empty-state { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #555; }
 
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="brand-container">
-            <span class="brand-icon">👁️</span> 
-            <div class="brand-text">
-                <span class="brand-title">OLHO DE DEUS</span>
-                <span class="brand-subtitle">SISTEMA TÁTICO LOGÍSTICO</span>
+    <div id="app-container">
+        <header>
+            <div class="brand-group">
+                <div class="brand-icon">👁️</div>
+                <div>
+                    <div class="brand-title">OLHO DE DEUS</div>
+                    <div class="brand-sub">SISTEMA INTEGRADO V8.0</div>
+                </div>
             </div>
-        </div>
 
-        <div class="connection-area">
-            <input type="text" id="sheet-input" placeholder="Cole o Link CSV aqui...">
-            <button id="connect-btn" onclick="connectSheet()">CONECTAR SISTEMA</button>
-        </div>
-    </header>
-
-    <div class="main-grid">
-        <div class="panel">
-            <div id="tactical-map"></div>
-            <div id="loading-map" class="empty-state">
-                <div class="empty-icon">🗺️</div>
-                <div>Aguardando conexão com a planilha...</div>
+            <div class="connect-box">
+                <input type="text" id="sheet-input" placeholder="Cole o Link CSV aqui...">
+                <div class="btn-row">
+                    <button class="btn" id="btn-connect" onclick="connectSystem()">CONECTAR</button>
+                    <button class="btn" id="btn-tv" onclick="toggleTV()">📺 TV MODE</button>
+                </div>
             </div>
-        </div>
+        </header>
 
-        <div class="panel hud-container" id="hud-feed">
-            <div class="empty-state">
-                <div class="empty-icon">📡</div>
-                <div>Cole o link acima para iniciar<br>o monitoramento em tempo real.</div>
+        <div class="main-grid">
+            <div class="panel map-bg">
+                <div id="tactical-map"></div>
+                <div id="map-loader" class="empty-state">
+                    <div style="font-size:40px">🗺️</div>
+                    <p>Aguardando Dados Táticos...</p>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="hud-scroll" id="hud-feed">
+                    <div class="empty-state">
+                        <div style="font-size:40px">📡</div>
+                        <p>Sistema Offline</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
+    <div class="ticker-wrap">
+        <div class="ticker-move" id="ticker-content">
+            <span class="ticker-item">SISTEMA INICIADO... AGUARDANDO SINCRONIZAÇÃO...</span>
+        </div>
+    </div>
+
     <script>
-        // CONFIGURAÇÃO DE META
-        const META_UPH = 290; // Meta padrão de produtividade
-        const META_UPM = META_UPH / 60; // Unidades por minuto (4.83)
+        // CONFIGURAÇÕES GLOBAIS
+        const META_UPH = 290; // Unidades Por Hora (Meta)
+        const META_UPM = META_UPH / 60; // Unidades Por Minuto (4.83)
+        const REFRESH_RATE = 3000; // 3 Segundos
 
-        let updateTimer = null;
-        let currentSheetUrl = "";
-
-        // Tenta carregar link salvo anteriormente
-        window.onload = function() {
-            const savedUrl = localStorage.getItem('dhl_sheet_url');
-            if(savedUrl) {
-                document.getElementById('sheet-input').value = savedUrl;
-                connectSheet(); 
+        let timer = null;
+        let currentUrl = "";
+        
+        // SISTEMA DE ÁUDIO (Sirene)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function beep(urgency) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            if (urgency === 'high') {
+                // Som de Erro Grave (Sawtooth)
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(220, audioCtx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
             }
         }
 
-        function connectSheet() {
+        // CARREGAR URL SALVA
+        window.onload = () => {
+            const saved = localStorage.getItem('dhl_sheet_url');
+            if(saved) {
+                document.getElementById('sheet-input').value = saved;
+                connectSystem();
+            }
+        };
+
+        // MODO TV (FULLSCREEN)
+        function toggleTV() {
+            document.body.classList.toggle('tv-mode');
+            // Redimensiona o mapa após a transição
+            setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 500);
+        }
+
+        // CONEXÃO
+        function connectSystem() {
             const url = document.getElementById('sheet-input').value.trim();
+            if(!url) return alert("Por favor, cole o link!");
             
-            if (!url) {
-                alert("Por favor, cole o link CSV da planilha!");
-                return;
-            }
-            if (!url.includes("output=csv")) {
-                alert("Atenção: O link deve terminar com 'output=csv'. Verifique se você publicou a planilha corretamente.");
-            }
-
-            currentSheetUrl = url;
-            localStorage.setItem('dhl_sheet_url', url); 
+            currentUrl = url;
+            localStorage.setItem('dhl_sheet_url', url);
             
-            // Muda botão visualmente
-            const btn = document.getElementById('connect-btn');
-            btn.innerText = "SISTEMA ONLINE";
+            const btn = document.getElementById('btn-connect');
+            btn.innerText = "ONLINE";
             btn.style.background = "#00ff00";
-            btn.style.color = "#000";
-
-            // Inicia leitura
-            fetchData();
             
-            // Limpa timer anterior se houver e inicia novo
-            if (updateTimer) clearInterval(updateTimer);
-            updateTimer = setInterval(fetchData, 3000); 
+            // Ativa o áudio no primeiro clique do usuário
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            fetchData();
+            if(timer) clearInterval(timer);
+            timer = setInterval(fetchData, REFRESH_RATE);
         }
 
         function fetchData() {
-            Papa.parse(currentSheetUrl, {
-                download: true,
-                header: true,
-                dynamicTyping: true,
-                complete: (results) => renderDashboard(results.data),
-                error: (err) => console.log("Erro de conexão:", err)
+            Papa.parse(currentUrl, {
+                download: true, header: true, dynamicTyping: true,
+                complete: (res) => render(res.data),
+                error: (e) => console.log("Erro:", e)
             });
         }
 
-        function renderDashboard(data) {
-            const container = document.getElementById('hud-feed');
-            const mapContainer = document.getElementById('tactical-map');
-            const loadingMap = document.getElementById('loading-map');
-
-            if (loadingMap) loadingMap.style.display = 'none';
-            container.innerHTML = "";
+        function render(data) {
+            const hud = document.getElementById('hud-feed');
+            const mapLoader = document.getElementById('map-loader');
+            if(mapLoader) mapLoader.style.display = 'none';
+            hud.innerHTML = "";
 
             let mapX=[], mapY=[], mapSize=[], mapColor=[], mapText=[];
-            
-            let processed = data.filter(r => r.Setor && r.Volume).map(row => {
-                let capMinuto = row.Equipe * META_UPM;
-                let tempoRestante = capMinuto > 0 ? (row.Volume / capMinuto) : 999;
+            let totalVol = 0;
+            let totalPpl = 0;
+            let critCount = 0;
+            let alertSoundNeeded = false;
+
+            // PROCESSAMENTO LÓGICO
+            let sectors = data.filter(r => r.Setor && r.Volume).map(row => {
+                let capacity = row.Equipe * META_UPM;
+                let minutesLeft = capacity > 0 ? (row.Volume / capacity) : 999;
                 
                 let status = "NORMAL";
-                if (tempoRestante > row.Meta) status = "CRITICO";
-                else if (tempoRestante < row.Meta * 0.6) status = "FOLGA";
+                if(minutesLeft > row.Meta) status = "CRITICO";
+                else if(minutesLeft < row.Meta * 0.6) status = "FOLGA";
 
-                return { ...row, tempoRestante, status };
+                totalVol += row.Volume;
+                totalPpl += row.Equipe;
+
+                return { ...row, minutesLeft, status };
             });
 
-            processed.sort((a, b) => (a.status === 'CRITICO' ? -1 : 1));
+            // ORDENAR: Críticos primeiro
+            sectors.sort((a,b) => (a.status === 'CRITICO' ? -1 : 1));
 
-            processed.forEach(row => {
+            // RENDERIZAR
+            sectors.forEach(row => {
+                let color = "#00ff00"; // Verde
                 let css = "st-ok";
-                let color = "#00ff00";
                 let msg = "";
+                let alertClass = "";
 
-                if (row.status === "CRITICO") {
-                    css = "st-critico";
-                    color = "#ff3333";
-                    
-                    let velNecessaria = row.Volume / row.Meta;
-                    let pessoasNecessarias = Math.ceil(velNecessaria / META_UPM);
-                    let gap = pessoasNecessarias - row.Equipe;
+                if(row.status === "CRITICO") {
+                    color = "#ff3333"; // Vermelho
+                    css = "st-crit";
+                    critCount++;
+                    alertSoundNeeded = true;
 
-                    if (gap > 0) msg = `🚨 ADICIONAR +${gap} PESSOAS`;
-                    else msg = `⚡ COBRAR RITMO DA EQUIPE`;
+                    // Lógica de Solução
+                    let speedNeeded = row.Volume / row.Meta;
+                    let peopleNeeded = Math.ceil(speedNeeded / META_UPM);
+                    let gap = peopleNeeded - row.Equipe;
+
+                    if(gap > 0) {
+                        msg = `🚨 ADD +${gap} PESSOAS`;
+                        alertClass = "bg-crit";
+                    } else {
+                        msg = `⚡ COBRAR RITMO`;
+                        alertClass = "bg-crit";
+                    }
                 } 
-                else if (row.status === "FOLGA") {
-                    css = "st-atencao";
-                    color = "#ffff00";
+                else if(row.status === "FOLGA") {
+                    color = "#ffcc00"; // Amarelo
+                    css = "st-warn";
                     msg = "📉 REDUZIR EQUIPE";
+                    alertClass = "bg-warn";
                 }
 
+                // DADOS DO MAPA
                 mapX.push(row.X); mapY.push(row.Y);
-                mapSize.push(Math.min(row.Volume/20, 90) + 10);
+                mapSize.push(Math.min(row.Volume/25, 90) + 15);
                 mapColor.push(color);
-                mapText.push(`<b>${row.Setor}</b><br>Vol: ${row.Volume}<br>${row.tempoRestante.toFixed(0)} min`);
+                mapText.push(`<b>${row.Setor}</b><br>Vol: ${row.Volume}<br>${row.minutesLeft.toFixed(0)} min`);
 
-                let html = `
-                <div class="island-card ${css}">
+                // CARD HUD
+                hud.innerHTML += `
+                <div class="card ${css}">
                     <div class="card-top">
                         <span>${row.Setor}</span>
-                        <span style="color:${color}">${row.tempoRestante.toFixed(0)} min</span>
+                        <span style="color:${color}">${row.minutesLeft.toFixed(0)}m</span>
                     </div>
-                    <div class="metrics">
-                        <div>VOLUME <br><span class="metric-val">${row.Volume}</span></div>
-                        <div style="text-align:right">EQUIPE <br><span class="metric-val">${row.Equipe}</span></div>
+                    <div class="card-stats">
+                        <div>VOL: <span class="val">${row.Volume}</span></div>
+                        <div>EQP: <span class="val">${row.Equipe}</span></div>
                     </div>
-                    
-                    ${msg ? `<div class="action-alert" style="border-color:${color}; color:${color === '#ffff00' ? '#ffff00' : '#ffcccc'}; background:rgba(0,0,0,0.5)">${msg}</div>` : ''}
-
-                    <div style="margin-top:10px;">
-                        <div class="progress-bar">
-                            <div class="fill" style="width:${Math.min((row.tempoRestante/row.Meta)*100, 100)}%; background:${color}"></div>
-                        </div>
-                        <div style="text-align:right; font-size:10px; color:#666; margin-top:3px">META: ${row.Meta} min</div>
+                    ${msg ? `<div class="alert-badge ${alertClass}">${msg}</div>` : ''}
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width:${Math.min((row.minutesLeft/row.Meta)*100, 100)}%; background:${color}"></div>
                     </div>
                 </div>`;
-                
-                container.innerHTML += html;
             });
 
-            var trace = {
+            // UPDATE MAPA
+            Plotly.react('tactical-map', [{
                 x: mapX, y: mapY, text: mapText,
                 mode: 'markers+text', textposition: 'top center',
                 marker: { size: mapSize, color: mapColor, opacity: 0.8, line: {color: '#fff', width: 1} },
                 type: 'scatter', hoverinfo: 'text'
-            };
-            var layout = {
+            }], {
                 paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
                 showlegend: false, xaxis: {visible:false, range:[0,11]}, yaxis: {visible:false, range:[0,6]},
                 margin: {l:0,r:0,t:0,b:0}, font:{color:'#fff'}
-            };
-            Plotly.react('tactical-map', [trace], layout, {displayModeBar: false});
+            }, {displayModeBar: false});
+
+            // UPDATE TICKER
+            updateTicker(totalVol, totalPpl, critCount);
+
+            // TOCAR SOM SE NECESSÁRIO
+            if(alertSoundNeeded) beep('high');
+        }
+
+        function updateTicker(vol, ppl, crit) {
+            const el = document.getElementById('ticker-content');
+            let statusText = crit > 0 ? `<span style="color:red">⚠️ ALERTA: ${crit} SETORES CRÍTICOS</span>` : `<span style="color:#00ff00">✅ OPERAÇÃO ESTÁVEL</span>`;
+            
+            let html = `
+                <span class="ticker-item">VOLUME TOTAL: ${vol.toLocaleString()}</span>
+                <span class="ticker-item">HEADCOUNT: ${ppl}</span>
+                <span class="ticker-item">${statusText}</span>
+                <span class="ticker-item">META PADRÃO: ${META_UPH} UPH</span>
+                <span class="ticker-item">DHL CONTROL TOWER V8.0</span>
+            `;
+            // Atualiza apenas se mudar para evitar "pulo" na animação
+            if(!el.innerHTML.includes(vol.toLocaleString()) || crit > 0) el.innerHTML = html + html; 
         }
     </script>
 </body>
 </html>
-                        
+  
