@@ -28,101 +28,68 @@
             box-sizing: border-box;
         }
         
-        /* HEADER REESTRUTURADO */
+        /* HEADER COM INPUT */
         header { 
             display: flex; 
             justify-content: space-between; 
-            align-items: center; /* Centraliza verticalmente */
+            align-items: center; 
             background: var(--glass);
             backdrop-filter: blur(10px);
             border: 1px solid var(--border);
-            padding: 10px 25px; /* Menos padding vertical para compensar a altura do input */
+            padding: 15px 25px; 
             border-radius: 12px;
             margin-bottom: 20px; 
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-            height: 100px; /* Altura fixa para manter o design estável */
         }
 
-        .brand-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .brand-icon {
-            font-size: 38px;
-            filter: drop-shadow(0 0 5px rgba(255, 204, 0, 0.5));
-        }
-
-        .brand-text {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .brand-title { 
+        .brand { 
             font-family: 'Orbitron', sans-serif; 
             font-size: 24px; 
             color: var(--primary); 
             letter-spacing: 2px;
-            line-height: 1;
-            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .brand-subtitle {
-            font-size: 10px; 
-            color: #888; 
-            letter-spacing: 3px;
-            margin-top: 5px;
-            font-weight: 300;
-        }
-
-        /* ÁREA DE CONEXÃO (AJUSTADA: BOTÃO EMBAIXO) */
+        /* ÁREA DE CONEXÃO (NOVIDADE) */
         .connection-area {
             display: flex;
-            flex-direction: column; /* Empilha verticalmente */
-            gap: 8px;
-            align-items: stretch; /* Estica os itens */
-            background: rgba(0,0,0,0.2);
-            padding: 10px;
+            gap: 10px;
+            background: rgba(0,0,0,0.3);
+            padding: 5px;
             border-radius: 8px;
             border: 1px solid var(--border);
-            width: 300px;
         }
 
         #sheet-input {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: transparent;
+            border: none;
             color: #fff;
-            padding: 8px 10px;
-            border-radius: 4px;
-            font-size: 12px;
+            padding: 8px 15px;
+            width: 300px;
+            font-size: 14px;
             outline: none;
-            text-align: center;
-            transition: border 0.3s;
         }
-        #sheet-input:focus { border-color: var(--primary); }
 
         #connect-btn {
             background: var(--primary);
             color: #000;
             border: none;
-            padding: 8px 0; /* Padding vertical apenas */
-            border-radius: 4px;
-            font-weight: 900;
-            font-size: 12px;
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-weight: bold;
             cursor: pointer;
             transition: all 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
         }
-        #connect-btn:hover { background: #e6b800; transform: translateY(-1px); }
+        #connect-btn:hover { background: #e6b800; transform: scale(1.05); }
 
         /* GRID PRINCIPAL */
         .main-grid { 
             display: grid; 
             grid-template-columns: 70% 30%; 
             gap: 20px; 
-            height: calc(100vh - 160px); /* Ajuste de altura */
+            height: calc(100vh - 120px); 
         }
         
         /* BLOCOS */
@@ -154,7 +121,6 @@
             padding: 15px; 
             border-radius: 6px; 
             transition: transform 0.2s;
-            margin-bottom: 5px;
         }
         .island-card:hover { transform: translateX(5px); background: rgba(255,255,255,0.03); }
         
@@ -174,7 +140,6 @@
             font-size: 13px; 
             border-radius: 4px;
             animation: pulse 2s infinite;
-            margin-bottom: 10px;
         }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); } }
 
@@ -204,17 +169,17 @@
 <body>
 
     <header>
-        <div class="brand-container">
-            <span class="brand-icon">👁️</span> 
-            <div class="brand-text">
-                <span class="brand-title">OLHO DE DEUS</span>
-                <span class="brand-subtitle">SISTEMA TÁTICO LOGÍSTICO</span>
+        <div class="brand">
+            <span style="font-size: 28px;">👁️</span> 
+            <div>
+                OLHO DE DEUS <br>
+                <span style="font-size: 10px; color: #888; letter-spacing: 1px;">SISTEMA TÁTICO LOGÍSTICO</span>
             </div>
         </div>
 
         <div class="connection-area">
-            <input type="text" id="sheet-input" placeholder="Cole o Link CSV aqui...">
-            <button id="connect-btn" onclick="connectSheet()">CONECTAR SISTEMA</button>
+            <input type="text" id="sheet-input" placeholder="Cole o Link CSV da Planilha aqui...">
+            <button id="connect-btn" onclick="connectSheet()">CONECTAR</button>
         </div>
     </header>
 
@@ -223,7 +188,7 @@
             <div id="tactical-map"></div>
             <div id="loading-map" class="empty-state">
                 <div class="empty-icon">🗺️</div>
-                <div>Aguardando conexão com a planilha...</div>
+                <div>Aguardando dados...</div>
             </div>
         </div>
 
@@ -248,7 +213,7 @@
             const savedUrl = localStorage.getItem('dhl_sheet_url');
             if(savedUrl) {
                 document.getElementById('sheet-input').value = savedUrl;
-                connectSheet(); 
+                connectSheet(); // Conecta automático se já tiver salvo
             }
         }
 
@@ -264,20 +229,19 @@
             }
 
             currentSheetUrl = url;
-            localStorage.setItem('dhl_sheet_url', url); 
+            localStorage.setItem('dhl_sheet_url', url); // Salva no navegador
             
             // Muda botão visualmente
             const btn = document.getElementById('connect-btn');
-            btn.innerText = "SISTEMA ONLINE";
+            btn.innerText = "CONECTADO";
             btn.style.background = "#00ff00";
-            btn.style.color = "#000";
 
             // Inicia leitura
             fetchData();
             
             // Limpa timer anterior se houver e inicia novo
             if (updateTimer) clearInterval(updateTimer);
-            updateTimer = setInterval(fetchData, 3000); 
+            updateTimer = setInterval(fetchData, 3000); // Atualiza a cada 3s
         }
 
         function fetchData() {
@@ -295,12 +259,15 @@
             const mapContainer = document.getElementById('tactical-map');
             const loadingMap = document.getElementById('loading-map');
 
+            // Limpa estados vazios na primeira carga
             if (loadingMap) loadingMap.style.display = 'none';
             container.innerHTML = "";
 
             let mapX=[], mapY=[], mapSize=[], mapColor=[], mapText=[];
             
+            // Processa dados e ordena por criticidade
             let processed = data.filter(r => r.Setor && r.Volume).map(row => {
+                // Cálculo Matemático
                 let capMinuto = row.Equipe * META_UPM;
                 let tempoRestante = capMinuto > 0 ? (row.Volume / capMinuto) : 999;
                 
@@ -313,6 +280,7 @@
 
             processed.sort((a, b) => (a.status === 'CRITICO' ? -1 : 1));
 
+            // Renderiza Cards e Prepara Mapa
             processed.forEach(row => {
                 let css = "st-ok";
                 let color = "#00ff00";
@@ -322,6 +290,7 @@
                     css = "st-critico";
                     color = "#ff3333";
                     
+                    // Cálculo de Reforço
                     let velNecessaria = row.Volume / row.Meta;
                     let pessoasNecessarias = Math.ceil(velNecessaria / META_UPM);
                     let gap = pessoasNecessarias - row.Equipe;
@@ -335,11 +304,13 @@
                     msg = "📉 REDUZIR EQUIPE";
                 }
 
+                // Dados Mapa
                 mapX.push(row.X); mapY.push(row.Y);
                 mapSize.push(Math.min(row.Volume/20, 90) + 10);
                 mapColor.push(color);
                 mapText.push(`<b>${row.Setor}</b><br>Vol: ${row.Volume}<br>${row.tempoRestante.toFixed(0)} min`);
 
+                // HTML do Card
                 let html = `
                 <div class="island-card ${css}">
                     <div class="card-top">
@@ -364,6 +335,7 @@
                 container.innerHTML += html;
             });
 
+            // Atualiza Mapa
             var trace = {
                 x: mapX, y: mapY, text: mapText,
                 mode: 'markers+text', textposition: 'top center',
@@ -380,4 +352,3 @@
     </script>
 </body>
 </html>
-
