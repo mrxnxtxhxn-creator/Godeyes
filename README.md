@@ -2,237 +2,382 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>OLHO DE DEUS | DHL PERFORMANCE 290</title>
+    <title>OLHO DE DEUS | DHL CONTROL TOWER</title>
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@400;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@300;400;900&display=swap" rel="stylesheet">
     
     <style>
-        /* VISUAL CYBERPUNK DARK */
-        body { background-color: #050505; color: #fff; font-family: 'Roboto', sans-serif; margin: 0; padding: 10px; overflow: hidden; }
-        
-        /* HEADER */
-        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00e5ff; padding-bottom: 10px; margin-bottom: 15px; }
-        .brand { font-family: 'Orbitron', sans-serif; font-size: 24px; color: #00e5ff; letter-spacing: 2px; text-shadow: 0 0 10px #00e5ff; }
-        .meta-tag { background: #111; border: 1px solid #00e5ff; color: #00e5ff; padding: 5px 15px; border-radius: 4px; font-weight: bold; font-size: 14px; }
+        /* ESTILO PROFISSIONAL (Glassmorphism) */
+        :root {
+            --primary: #ffcc00; /* Amarelo DHL */
+            --bg-dark: #0f0f13;
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+        }
 
-        /* GRID */
-        .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 15px; height: 88vh; }
+        body { 
+            background-color: var(--bg-dark); 
+            background-image: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #000 100%);
+            color: #fff; 
+            font-family: 'Roboto', sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            height: 100vh;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+        
+        /* HEADER REESTRUTURADO */
+        header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; /* Centraliza verticalmente */
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            padding: 10px 25px; /* Menos padding vertical para compensar a altura do input */
+            border-radius: 12px;
+            margin-bottom: 20px; 
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+            height: 100px; /* Altura fixa para manter o design estável */
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .brand-icon {
+            font-size: 38px;
+            filter: drop-shadow(0 0 5px rgba(255, 204, 0, 0.5));
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-title { 
+            font-family: 'Orbitron', sans-serif; 
+            font-size: 24px; 
+            color: var(--primary); 
+            letter-spacing: 2px;
+            line-height: 1;
+            font-weight: 700;
+        }
+
+        .brand-subtitle {
+            font-size: 10px; 
+            color: #888; 
+            letter-spacing: 3px;
+            margin-top: 5px;
+            font-weight: 300;
+        }
+
+        /* ÁREA DE CONEXÃO (AJUSTADA: BOTÃO EMBAIXO) */
+        .connection-area {
+            display: flex;
+            flex-direction: column; /* Empilha verticalmente */
+            gap: 8px;
+            align-items: stretch; /* Estica os itens */
+            background: rgba(0,0,0,0.2);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            width: 300px;
+        }
+
+        #sheet-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 8px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            outline: none;
+            text-align: center;
+            transition: border 0.3s;
+        }
+        #sheet-input:focus { border-color: var(--primary); }
+
+        #connect-btn {
+            background: var(--primary);
+            color: #000;
+            border: none;
+            padding: 8px 0; /* Padding vertical apenas */
+            border-radius: 4px;
+            font-weight: 900;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        #connect-btn:hover { background: #e6b800; transform: translateY(-1px); }
+
+        /* GRID PRINCIPAL */
+        .main-grid { 
+            display: grid; 
+            grid-template-columns: 70% 30%; 
+            gap: 20px; 
+            height: calc(100vh - 160px); /* Ajuste de altura */
+        }
+        
+        /* BLOCOS */
+        .panel { 
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 12px; 
+            position: relative; 
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+        }
         
         /* MAPA */
-        .map-container { background: #0a0a0a; border: 1px solid #333; border-radius: 8px; position: relative; }
-        
-        /* PAINEL LATERAL */
-        .side-panel { display: flex; flex-direction: column; gap: 10px; overflow-y: auto; padding-right: 5px; }
+        #tactical-map { width: 100%; height: 100%; }
 
-        /* CARTÃO DA ILHA */
-        .card { 
-            background: #111; border-left: 5px solid #333; padding: 15px; 
-            border-radius: 4px; position: relative; transition: all 0.3s;
+        /* PAINEL LATERAL (HUD) */
+        .hud-container { 
+            padding: 15px; 
+            overflow-y: auto; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
         }
-        .card-header { display: flex; justify-content: space-between; font-family: 'Orbitron'; font-size: 16px; margin-bottom: 10px; }
+
+        /* CARTÕES DAS ILHAS */
+        .island-card { 
+            background: rgba(0, 0, 0, 0.4); 
+            border-left: 4px solid #444; 
+            padding: 15px; 
+            border-radius: 6px; 
+            transition: transform 0.2s;
+            margin-bottom: 5px;
+        }
+        .island-card:hover { transform: translateX(5px); background: rgba(255,255,255,0.03); }
         
-        .metrics-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; font-size: 12px; color: #aaa; }
-        .big-number { font-size: 18px; font-weight: 900; color: #fff; display: block; }
+        .card-top { display: flex; justify-content: space-between; margin-bottom: 10px; font-family: 'Orbitron'; font-size: 16px; }
         
-        /* ALERTAS */
-        .alert-box { 
-            text-align: center; font-weight: bold; padding: 8px; 
-            margin-top: 10px; border-radius: 3px; font-size: 13px; letter-spacing: 1px;
+        .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px; color: #aaa; margin-bottom: 10px; }
+        .metric-val { font-size: 18px; color: #fff; font-weight: bold; }
+        
+        /* ALERTAS VISUAIS */
+        .action-alert { 
+            background: linear-gradient(90deg, #300, #500); 
+            border: 1px solid #ff0000; 
+            color: #ffcccc; 
+            padding: 8px; 
+            text-align: center; 
+            font-weight: bold; 
+            font-size: 13px; 
+            border-radius: 4px;
             animation: pulse 2s infinite;
+            margin-bottom: 10px;
         }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); } }
 
-        /* CORES DE STATUS */
-        .st-critico { border-color: #ff0000; background: #1a0505; }
-        .badge-critico { background: #ff0000; color: #fff; }
-        
+        /* STATUS CORES */
+        .st-critico { border-color: #ff3333; }
         .st-ok { border-color: #00ff00; }
-        .badge-ok { background: #006600; color: #ccffcc; }
-        
-        .st-warn { border-color: #ffff00; }
-        .badge-warn { background: #999900; color: #fff; }
+        .st-atencao { border-color: #ffff00; }
 
         /* BARRA DE PROGRESSO */
-        .prog-track { height: 4px; background: #333; margin-top: 10px; }
-        .prog-fill { height: 100%; width: 50%; transition: width 1s; }
+        .progress-bar { height: 4px; background: #333; border-radius: 2px; overflow: hidden; }
+        .fill { height: 100%; width: 50%; transition: width 1s ease-in-out; }
+
+        /* SCROLLBAR PERSONALIZADA */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+        /* MENSAGEM INICIAL */
+        .empty-state {
+            display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #666; text-align: center;
+        }
+        .empty-icon { font-size: 48px; margin-bottom: 15px; opacity: 0.5; }
 
     </style>
 </head>
 <body>
 
     <header>
-        <div class="brand">⚡ OLHO DE DEUS <span style="font-size:12px; opacity:0.7">v5.0</span></div>
-        <div class="meta-tag">META PADRÃO: 290 UPH</div>
-    </header>
-
-    <div class="grid">
-        <div class="map-container">
-            <div id="warehouse-map" style="width:100%; height:100%;"></div>
+        <div class="brand-container">
+            <span class="brand-icon">👁️</span> 
+            <div class="brand-text">
+                <span class="brand-title">OLHO DE DEUS</span>
+                <span class="brand-subtitle">SISTEMA TÁTICO LOGÍSTICO</span>
+            </div>
         </div>
 
-        <div class="side-panel" id="tactical-feed">
-            <div style="text-align:center; padding:50px; color:#444;">
-                Conectando ao Satélite...
+        <div class="connection-area">
+            <input type="text" id="sheet-input" placeholder="Cole o Link CSV aqui...">
+            <button id="connect-btn" onclick="connectSheet()">CONECTAR SISTEMA</button>
+        </div>
+    </header>
+
+    <div class="main-grid">
+        <div class="panel">
+            <div id="tactical-map"></div>
+            <div id="loading-map" class="empty-state">
+                <div class="empty-icon">🗺️</div>
+                <div>Aguardando conexão com a planilha...</div>
+            </div>
+        </div>
+
+        <div class="panel hud-container" id="hud-feed">
+            <div class="empty-state">
+                <div class="empty-icon">📡</div>
+                <div>Cole o link acima para iniciar<br>o monitoramento em tempo real.</div>
             </div>
         </div>
     </div>
 
     <script>
-        // ====================================================================
-        // 🔴 COLE O LINK CSV DA PLANILHA AQUI:
-        const SHEET_URL = 'COLE_SEU_LINK_AQUI'; 
-        // ====================================================================
+        // CONFIGURAÇÃO DE META
+        const META_UPH = 290; // Meta padrão de produtividade
+        const META_UPM = META_UPH / 60; // Unidades por minuto (4.83)
 
-        // CONFIGURAÇÃO DE PERFORMANCE
-        const UPH_META = 290; // Unidades Por Hora por Pessoa
-        const UPM_META = UPH_META / 60; // Unidades Por Minuto (4.83)
+        let updateTimer = null;
+        let currentSheetUrl = "";
 
-        // Loop de atualização (3 segundos)
-        setInterval(() => {
-            if(!SHEET_URL.includes('COLE')) loadData();
-        }, 3000);
+        // Tenta carregar link salvo anteriormente
+        window.onload = function() {
+            const savedUrl = localStorage.getItem('dhl_sheet_url');
+            if(savedUrl) {
+                document.getElementById('sheet-input').value = savedUrl;
+                connectSheet(); 
+            }
+        }
 
-        function loadData() {
-            Papa.parse(SHEET_URL, {
-                download: true, header: true, dynamicTyping: true,
-                complete: (results) => renderBoard(results.data)
+        function connectSheet() {
+            const url = document.getElementById('sheet-input').value.trim();
+            
+            if (!url) {
+                alert("Por favor, cole o link CSV da planilha!");
+                return;
+            }
+            if (!url.includes("output=csv")) {
+                alert("Atenção: O link deve terminar com 'output=csv'. Verifique se você publicou a planilha corretamente.");
+            }
+
+            currentSheetUrl = url;
+            localStorage.setItem('dhl_sheet_url', url); 
+            
+            // Muda botão visualmente
+            const btn = document.getElementById('connect-btn');
+            btn.innerText = "SISTEMA ONLINE";
+            btn.style.background = "#00ff00";
+            btn.style.color = "#000";
+
+            // Inicia leitura
+            fetchData();
+            
+            // Limpa timer anterior se houver e inicia novo
+            if (updateTimer) clearInterval(updateTimer);
+            updateTimer = setInterval(fetchData, 3000); 
+        }
+
+        function fetchData() {
+            Papa.parse(currentSheetUrl, {
+                download: true,
+                header: true,
+                dynamicTyping: true,
+                complete: (results) => renderDashboard(results.data),
+                error: (err) => console.log("Erro de conexão:", err)
             });
         }
 
-        function renderBoard(data) {
-            const container = document.getElementById('tactical-feed');
+        function renderDashboard(data) {
+            const container = document.getElementById('hud-feed');
+            const mapContainer = document.getElementById('tactical-map');
+            const loadingMap = document.getElementById('loading-map');
+
+            if (loadingMap) loadingMap.style.display = 'none';
             container.innerHTML = "";
 
             let mapX=[], mapY=[], mapSize=[], mapColor=[], mapText=[];
             
-            // Processamento dos Dados
-            let sectors = data.filter(r => r.Setor && r.Volume).map(row => {
+            let processed = data.filter(r => r.Setor && r.Volume).map(row => {
+                let capMinuto = row.Equipe * META_UPM;
+                let tempoRestante = capMinuto > 0 ? (row.Volume / capMinuto) : 999;
                 
-                // 1. CAPACIDADE TEÓRICA (O que a equipe DEVERIA estar fazendo)
-                let capacidadeRealMinuto = row.Equipe * UPM_META; 
-                
-                // 2. TEMPO NECESSÁRIO (Minutos para zerar fila trabalhando a 290 UPH)
-                let minutosParaZerar = 0;
-                if(capacidadeRealMinuto > 0) {
-                    minutosParaZerar = row.Volume / capacidadeRealMinuto;
-                } else {
-                    minutosParaZerar = 999; // Sem equipe = Tempo infinito
-                }
-
-                // 3. ANÁLISE DO PROFETA (Meta vs Realidade)
                 let status = "NORMAL";
-                
-                // Se o tempo para zerar for maior que o tempo limite (Meta da planilha)
-                if (minutosParaZerar > row.Meta) status = "CRITICO";
-                else if (minutosParaZerar < (row.Meta * 0.6)) status = "FOLGA";
+                if (tempoRestante > row.Meta) status = "CRITICO";
+                else if (tempoRestante < row.Meta * 0.6) status = "FOLGA";
 
-                return { ...row, minutosParaZerar, status, capacidadeRealMinuto };
+                return { ...row, tempoRestante, status };
             });
 
-            // Ordena: Críticos primeiro
-            sectors.sort((a, b) => (a.status === 'CRITICO' ? -1 : 1));
+            processed.sort((a, b) => (a.status === 'CRITICO' ? -1 : 1));
 
-            sectors.forEach(row => {
+            processed.forEach(row => {
                 let css = "st-ok";
                 let color = "#00ff00";
-                let alertMsg = "";
-                let alertClass = "";
+                let msg = "";
 
                 if (row.status === "CRITICO") {
                     css = "st-critico";
-                    color = "#ff0000";
+                    color = "#ff3333";
                     
-                    // CÁLCULO DE REFORÇO NECESSÁRIO
-                    // Quantos pacotes/minuto eu preciso para bater a meta?
-                    let velocidadeNecessaria = row.Volume / row.Meta;
-                    // Quantas pessoas batendo 290 UPH eu preciso?
-                    let pessoasNecessarias = Math.ceil(velocidadeNecessaria / UPM_META);
+                    let velNecessaria = row.Volume / row.Meta;
+                    let pessoasNecessarias = Math.ceil(velNecessaria / META_UPM);
                     let gap = pessoasNecessarias - row.Equipe;
 
-                    if (gap > 0) {
-                        alertMsg = `🚨 ADICIONAR +${gap} PESSOAS`;
-                        alertClass = "badge-critico";
-                    } else {
-                        // Se não falta gente, mas tá atrasado -> A EQUIPE TÁ LENTA
-                        alertMsg = `⚡ COBRAR RITMO (BAIXA PRODUTIVIDADE)`;
-                        alertClass = "badge-critico";
-                        // Truque visual: pinta de laranja pra diferenciar de falta de gente
-                        color = "#ff9900"; 
-                        css = "st-warn";
-                    }
-
-                } else if (row.status === "FOLGA") {
-                    css = "st-warn";
+                    if (gap > 0) msg = `🚨 ADICIONAR +${gap} PESSOAS`;
+                    else msg = `⚡ COBRAR RITMO DA EQUIPE`;
+                } 
+                else if (row.status === "FOLGA") {
+                    css = "st-atencao";
                     color = "#ffff00";
-                    alertMsg = "📉 EXCESSO DE EQUIPE (REDUZIR)";
-                    alertClass = "badge-warn";
-                } else {
-                    alertMsg = "✅ OPERAÇÃO ESTÁVEL";
-                    alertClass = "badge-ok";
+                    msg = "📉 REDUZIR EQUIPE";
                 }
 
-                // MAPA
                 mapX.push(row.X); mapY.push(row.Y);
-                mapSize.push(Math.min(row.Volume/20, 90));
+                mapSize.push(Math.min(row.Volume/20, 90) + 10);
                 mapColor.push(color);
-                mapText.push(`<b>${row.Setor}</b><br>Vol: ${row.Volume}<br>Tempo: ${row.minutosParaZerar.toFixed(0)}m`);
+                mapText.push(`<b>${row.Setor}</b><br>Vol: ${row.Volume}<br>${row.tempoRestante.toFixed(0)} min`);
 
-                // CARD
                 let html = `
-                <div class="card ${css}">
-                    <div class="card-header">
+                <div class="island-card ${css}">
+                    <div class="card-top">
                         <span>${row.Setor}</span>
-                        <span style="color:${color}">${row.minutosParaZerar.toFixed(0)} min</span>
+                        <span style="color:${color}">${row.tempoRestante.toFixed(0)} min</span>
+                    </div>
+                    <div class="metrics">
+                        <div>VOLUME <br><span class="metric-val">${row.Volume}</span></div>
+                        <div style="text-align:right">EQUIPE <br><span class="metric-val">${row.Equipe}</span></div>
                     </div>
                     
-                    <div class="metrics-row">
-                        <div>
-                            <span>VOLUME</span>
-                            <span class="big-number">${row.Volume}</span>
-                        </div>
-                        <div style="text-align:right;">
-                            <span>EQUIPE</span>
-                            <span class="big-number">${row.Equipe}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="alert-box ${alertClass}">
-                        ${alertMsg}
-                    </div>
+                    ${msg ? `<div class="action-alert" style="border-color:${color}; color:${color === '#ffff00' ? '#ffff00' : '#ffcccc'}; background:rgba(0,0,0,0.5)">${msg}</div>` : ''}
 
-                    <div class="prog-track">
-                        <div class="prog-fill" style="width:${Math.min((row.minutosParaZerar/row.Meta)*100, 100)}%; background:${color}"></div>
+                    <div style="margin-top:10px;">
+                        <div class="progress-bar">
+                            <div class="fill" style="width:${Math.min((row.tempoRestante/row.Meta)*100, 100)}%; background:${color}"></div>
+                        </div>
+                        <div style="text-align:right; font-size:10px; color:#666; margin-top:3px">META: ${row.Meta} min</div>
                     </div>
-                    <div style="text-align:right; font-size:10px; color:#666; margin-top:4px;">META TEMPO: ${row.Meta} min</div>
                 </div>`;
-
+                
                 container.innerHTML += html;
             });
 
-            updateMap(mapX, mapY, mapSize, mapColor, mapText);
-        }
-
-        function updateMap(x, y, s, c, t) {
-            var data = [{
-                x: x, y: y, text: t,
+            var trace = {
+                x: mapX, y: mapY, text: mapText,
                 mode: 'markers+text', textposition: 'top center',
-                marker: { size: s, color: c, opacity: 0.8, line: {color: '#fff', width: 1} },
+                marker: { size: mapSize, color: mapColor, opacity: 0.8, line: {color: '#fff', width: 1} },
                 type: 'scatter', hoverinfo: 'text'
-            }];
+            };
             var layout = {
                 paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
                 showlegend: false, xaxis: {visible:false, range:[0,11]}, yaxis: {visible:false, range:[0,6]},
                 margin: {l:0,r:0,t:0,b:0}, font:{color:'#fff'}
             };
-            Plotly.react('warehouse-map', data, layout, {displayModeBar: false});
-        }
-
-        if(SHEET_URL.includes('COLE')) {
-            document.getElementById('tactical-feed').innerHTML = "<h2 style='text-align:center; color:red; margin-top:50px;'>⚠️ COLE O LINK DA PLANILHA NO CÓDIGO</h2>";
-        } else {
-            loadData();
+            Plotly.react('tactical-map', [trace], layout, {displayModeBar: false});
         }
     </script>
 </body>
 </html>
+                        
