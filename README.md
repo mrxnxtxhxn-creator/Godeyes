@@ -1,690 +1,447 @@
-<!DOCTYPE html>
-<html lang="pt-br">
+       <!DOCTYPE html>
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>DHL TRIAGEM | MONITOR DE PRODUÇÃO</title>
-    <!-- Leitura de CSV e Excel -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Olho de Deus - Torre de Controle Logística</title>
+    <!-- Tailwind CSS (Estilos Modernos) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome (Ícones) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     
     <style>
-        :root {
-            --vermelho-dhl: #d40511; 
-            --amarelo-dhl: #ffcc00; 
-            --verde-ok: #00ff00;
-            --azul-oracle: #00e5ff;
-            --fundo-mapa: #0d1117;
-            --painel-bg: rgba(15, 15, 20, 0.95);
-            --grid-line: rgba(255, 204, 0, 0.08);
+        /* --- TEMA ESCURO PROFISSIONAL --- */
+        body {
+            background-color: #0f172a; /* Azul Escuro Profundo */
+            color: #f1f5f9;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
         }
 
-        body { 
-            background-color: #000; 
-            color: #fff; 
-            font-family: 'Roboto', sans-serif; 
-            margin: 0; padding: 0;
-            height: 100vh; 
-            overflow: hidden; 
+        /* --- CARD DA RUA --- */
+        .lane-card {
+            background-color: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
             display: flex;
-            flex-direction: column; 
-        }
-
-        /* HEADER */
-        header { 
-            position: relative; 
-            z-index: 1000;
-            flex-shrink: 0; 
-            display: flex; justify-content: space-between; align-items: center; 
-            background: #111; border-bottom: 2px solid var(--amarelo-dhl);
-            padding: 0 20px; height: 60px; box-sizing: border-box;
-        }
-
-        .brand { font-size: 24px; font-weight: 900; color: var(--amarelo-dhl); font-style: italic; display: flex; align-items: center; gap: 10px; }
-        .brand span { color: #fff; font-weight: 300; font-size: 14px; font-style: normal; text-transform: uppercase;}
-        
-        .controls { display: flex; gap: 10px; align-items: center; }
-        
-        .btn {
-            background: #333; color: #fff; padding: 8px 12px; border: 1px solid #555;
-            cursor: pointer; font-size: 11px; border-radius: 4px; font-weight: bold; text-transform: uppercase;
-            display: flex; align-items: center; justify-content: center; gap: 5px; white-space: nowrap;
-        }
-        .btn:hover { background: #555; border-color: #fff; }
-        .btn-connect { background: var(--amarelo-dhl); color: #000; border: none; }
-        .btn-excel { background: #1D6F42; color: #fff; border: none; } 
-        .btn-excel:hover { background: #155e35; }
-        
-        /* BOTÃO DO ORÁCULO */
-        .btn-oracle { 
-            background: linear-gradient(45deg, #005f73, #0a9396); 
-            border: 1px solid var(--azul-oracle); color: #fff; 
-            box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
-        }
-        .btn-oracle:hover { background: #00e5ff; color: #000; box-shadow: 0 0 20px var(--azul-oracle); }
-        
-        .btn-icon { width: 32px; padding: 0; font-size: 16px; }
-        
-        #sheet-input { background: #222; border: 1px solid #444; color: #fff; padding: 8px; width: 180px; border-radius: 4px; }
-
-        /* ÁREA PRINCIPAL (MAPA) */
-        #map-container {
+            flex-direction: column;
+            border-left: 6px solid #475569; /* Cor Neutra Padrão */
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
-            flex-grow: 1; 
-            width: 100%;
-            overflow: auto; 
-            background-color: var(--fundo-mapa);
-            background-image: 
-                linear-gradient(var(--grid-line) 1px, transparent 1px),
-                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
-            background-size: 50px 50px;
+            overflow: hidden;
+            min-height: 280px;
         }
 
-        #map-content { 
-            position: relative; 
-            min-width: 100%; 
-            min-height: 100%; 
-            display: inline-block; 
+        /* Efeito ao passar o mouse com um item arrastado */
+        .lane-card.drag-over {
+            transform: scale(1.03);
+            background-color: #334155;
+            border: 2px dashed #60a5fa; /* Azul Brilhante */
+            box-shadow: 0 0 20px rgba(96, 165, 250, 0.3);
         }
 
-        #floor-plan { display: block; opacity: 0.5; display: none; }
-
-        /* MENSAGEM DE BOAS-VINDAS (EMPTY STATE) */
-        #empty-state {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            text-align: center; color: #444; font-family: 'Roboto'; pointer-events: none;
-        }
-        #empty-state h1 { font-size: 30px; margin: 0; color: #666; }
-        #empty-state p { font-size: 14px; margin-top: 10px; }
-
-        /* CARD DA ILHA */
-        .zone-card {
-            position: absolute; transform: translate(-50%, -50%);
-            background: rgba(10, 10, 10, 0.9); border: 2px solid #444; border-radius: 6px;
-            min-width: 140px; box-shadow: 0 10px 20px rgba(0,0,0,0.6);
-            transition: all 0.5s ease; z-index: 10;
-            display: flex; flex-direction: column; overflow: hidden;
+        .lane-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 12px;
+            margin-bottom: 12px;
         }
 
-        .status-critico { 
-            border-color: var(--vermelho-dhl); 
-            box-shadow: 0 0 25px rgba(212, 5, 17, 0.5);
-            animation: pulse-border 1s infinite alternate; z-index: 100;
+        .lane-title { font-size: 1.25rem; font-weight: 700; color: #fff; letter-spacing: 0.05em; }
+        .lane-icon { font-size: 1.2rem; color: #64748b; }
+
+        .lane-metrics { margin-bottom: 15px; }
+        .lane-volume { font-size: 2.5rem; font-weight: 800; line-height: 1; color: #f8fafc; }
+        .lane-label { font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; font-weight: 600; letter-spacing: 0.05em; }
+
+        /* --- PAINEL INTELIGENTE (OVERLAY) --- */
+        .smart-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: auto;
+            border: 1px solid rgba(255,255,255,0.05);
         }
-        .status-critico .zone-header { background: var(--vermelho-dhl); color: white; }
-        
-        .status-ok { border-color: var(--verde-ok); }
-        .status-ok .zone-header { background: #003300; color: var(--verde-ok); border-bottom: 1px solid #004400; }
-        
-        .status-folga { border-color: var(--amarelo-dhl); }
-        .status-folga .zone-header { background: #332b00; color: var(--amarelo-dhl); border-bottom: 1px solid #443a00; }
 
-        @keyframes pulse-border { 
-            0% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 10px var(--vermelho-dhl); } 
-            100% { transform: translate(-50%, -50%) scale(1.05); box-shadow: 0 0 30px var(--vermelho-dhl); } 
+        /* CORES DE STATUS DINÂMICAS */
+        /* Crítico (Vermelho) */
+        .status-critical { border-left-color: #ef4444 !important; }
+        .bg-critical { background-color: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .text-critical { color: #fca5a5; }
+
+        /* Atenção/Sobrando (Amarelo) */
+        .status-warning { border-left-color: #f59e0b !important; }
+        .bg-warning { background-color: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); }
+        .text-warning { color: #fcd34d; }
+
+        /* Estável (Verde) */
+        .status-stable { border-left-color: #10b981 !important; }
+        .bg-stable { background-color: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .text-stable { color: #6ee7b7; }
+
+        /* --- TAGS DE FUNCIONÁRIOS (DRAGGABLE) --- */
+        .staff-tag {
+            background-color: #334155;
+            color: #e2e8f0;
+            padding: 6px 10px;
+            border-radius: 9999px; /* Pill shape */
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-right: 6px;
+            margin-bottom: 6px;
+            border: 1px solid #475569;
+            cursor: grab;
+            transition: all 0.2s;
+            user-select: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
-        .zone-header { font-size: 14px; font-weight: 900; text-transform: uppercase; text-align: center; padding: 6px; white-space: nowrap; }
-        .card-body { padding: 8px; display: flex; flex-direction: column; gap: 4px; }
-        .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; text-align: center; }
-        .metric-item { display: flex; flex-direction: column; }
-        .metric-lbl { font-size: 8px; color: #aaa; margin-bottom: 2px; text-transform: uppercase; }
-        .metric-val { font-size: 16px; font-weight: bold; color: #fff; }
-        .action-box { margin-top: 5px; padding: 4px; border-radius: 3px; text-align: center; font-size: 11px; font-weight: 900; text-transform: uppercase; }
-        .act-add { background: var(--vermelho-dhl); color: #fff; }
-        .act-remove { background: var(--amarelo-dhl); color: #000; }
-        .act-ok { background: #222; color: #555; border: 1px solid #333; }
-        .vol-bar-bg { height: 4px; background: #333; border-radius: 2px; overflow: hidden; margin-top: 5px; }
-        .vol-bar-fill { height: 100%; transition: width 0.5s; }
-
-        /* SIDEBAR (HUD) */
-        #hud-sidebar {
-            position: absolute; top: 10px; right: 20px; bottom: 20px; width: 300px;
-            background: var(--painel-bg); border: 1px solid #444; border-radius: 8px;
-            display: flex; flex-direction: column; backdrop-filter: blur(10px); z-index: 900;
-            transition: transform 0.3s ease-in-out; transform: translateX(0);
-            max-height: calc(100vh - 80px);
+        .staff-tag:hover {
+            background-color: #475569;
+            transform: translateY(-1px);
+            border-color: #94a3b8;
         }
-        #hud-sidebar.hidden { transform: translateX(120%); }
 
-        .hud-header-container { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #444; }
-        .hud-title { font-weight: bold; color: #ccc; font-size: 14px; }
-        .btn-close-hud { cursor: pointer; color: #888; font-size: 18px; }
-        
-        .hud-list { flex-grow: 1; overflow-y: auto; padding: 10px; }
-        .list-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #333; font-size: 12px; }
-        .status-led { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
-        .ilha-nome { font-weight: bold; font-size: 13px; color: #fff; }
-        .rua-nome { font-size: 10px; color: #888; display: block; }
+        .staff-tag:active { cursor: grabbing; }
 
-        /* LOG DE EVENTOS */
-        .hud-log {
-            height: 150px; border-top: 1px solid #444; background: rgba(0,0,0,0.3);
-            padding: 10px; overflow-y: auto; font-family: monospace; font-size: 10px;
-            flex-shrink: 0;
+        .staff-tag.dragging {
+            opacity: 0.5;
+            border: 1px dashed #fff;
+            background-color: #0f172a;
         }
-        .log-title { color: #888; font-weight: bold; margin-bottom: 5px; display: block; }
-        .log-item { margin-bottom: 3px; color: #aaa; border-bottom: 1px solid #222; padding-bottom: 2px;}
-        .log-time { color: var(--amarelo-dhl); margin-right: 5px; }
-        .log-crit { color: var(--vermelho-dhl); }
 
-        /* MODAIS */
-        .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center;
+        .btn-remove {
+            color: #94a3b8;
+            cursor: pointer;
+            transition: color 0.2s;
+            padding: 2px;
         }
-        .modal-content {
-            background: #1a1a1a; padding: 25px; border-radius: 8px; border: 1px solid #444;
-            width: 500px; color: #fff; box-shadow: 0 0 30px rgba(0,0,0,0.8);
-        }
-        .modal-content h3 { color: var(--amarelo-dhl); margin-top: 0; display: flex; align-items: center; gap: 10px;}
-        .modal-content table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
-        .modal-content th { text-align: left; border-bottom: 1px solid #555; color: #aaa; padding: 5px; }
-        .modal-content td { border-bottom: 1px solid #333; padding: 5px; }
-        
-        /* ESTILOS DO ORÁCULO */
-        .oracle-result { background: #0f1c24; border: 1px solid var(--azul-oracle); padding: 15px; border-radius: 5px; margin-top: 15px; }
-        .oracle-header { color: var(--azul-oracle); font-weight: bold; margin-bottom: 10px; text-transform: uppercase; font-size: 14px; display: flex; justify-content: space-between; }
-        .move-card { 
-            display: flex; justify-content: space-between; align-items: center; 
-            background: rgba(0, 229, 255, 0.1); border-left: 3px solid var(--azul-oracle);
-            padding: 8px; margin-bottom: 5px; font-size: 13px;
-        }
-        .move-arrow { color: var(--azul-oracle); font-weight: bold; padding: 0 10px; }
-        .move-highlight { color: #fff; font-weight: bold; }
+        .btn-remove:hover { color: #ef4444; }
 
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; color: #aaa; font-size: 12px; margin-bottom: 5px; }
-        .input-group input { width: 100%; background: #222; border: 1px solid #444; color: #fff; padding: 8px; box-sizing: border-box; }
-        .hint { font-size: 10px; color: #666; margin-top: 3px; }
-
-        ::-webkit-scrollbar { width: 12px; height: 12px; }
-        ::-webkit-scrollbar-track { background: #111; }
-        ::-webkit-scrollbar-thumb { background: var(--amarelo-dhl); border-radius: 6px; border: 2px solid #111; }
-        ::-webkit-scrollbar-thumb:hover { background: #ffd700; }
+        /* Animações */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-in { animation: fadeIn 0.4s ease-out; }
 
     </style>
 </head>
-<body>
+<body class="p-4 md:p-8 min-h-screen">
 
-    <header>
-        <div class="brand">
-            <div style="width:10px; height:10px; background:red; border-radius:50%; animation:pulse-border 1s infinite"></div>
-            DHL <span>MONITOR DE TRIAGEM</span>
+    <!-- CABEÇALHO -->
+    <header class="max-w-7xl mx-auto mb-8 bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-white flex items-center gap-3">
+                <i class="fas fa-eye text-blue-500"></i> 
+                <span>Olho de Deus <span class="text-sm font-normal text-slate-400">| Gestão Tática</span></span>
+            </h1>
+            <div class="flex items-center gap-4 mt-2 text-sm text-slate-400">
+                <span class="flex items-center gap-2"><i class="fas fa-calculator"></i> Meta: <strong>290 pacotes/h</strong></span>
+                <span class="flex items-center gap-2"><i class="fas fa-users"></i> Staff Ativo: <strong id="total-staff">0</strong></span>
+            </div>
         </div>
-        <div class="controls">
-            <!-- BOTÃO GÊNIO -->
-            <button class="btn btn-oracle" onclick="abrirOraculo()">🔮 O ORÁCULO</button>
-            <div style="height:20px; width:1px; background:#444; margin:0 5px;"></div>
 
-            <button class="btn btn-icon" onclick="toggleSidebar()" title="Painel Lateral">📋</button>
-            <button class="btn btn-icon" onclick="toggleConfig()" title="Configurações de Automação">⚙️</button>
-            <button class="btn btn-icon" onclick="toggleHelp()" title="Ajuda">?</button>
-            
-            <div style="height:20px; width:1px; background:#444; margin:0 5px;"></div>
-
-            <label class="btn btn-excel">
-                📂 ABRIR EXCEL
-                <input type="file" id="excel-upload" accept=".xlsx, .xls, .csv" style="display:none" onchange="lerExcel(this)">
-            </label>
-
-            <input type="text" id="sheet-input" placeholder="Cole link CSV Google...">
-            <button class="btn btn-connect" onclick="conectarPlanilha()">CONECTAR</button>
-            
-            <label class="btn">
-                📤 FOTO
-                <input type="file" accept="image/*" style="display:none" onchange="carregarFundo(this)">
-            </label>
+        <div class="flex gap-3">
+            <button onclick="simularVolumes()" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg font-bold shadow-lg transition flex items-center gap-2">
+                <i class="fas fa-random"></i> Simular Carga
+            </button>
+            <button onclick="resetarTudo()" class="bg-slate-700 hover:bg-red-600 text-white px-5 py-2.5 rounded-lg font-bold shadow-lg transition flex items-center gap-2 group">
+                <i class="fas fa-trash-alt group-hover:animate-bounce"></i> Resetar
+            </button>
         </div>
     </header>
 
-    <div id="map-container">
-        <div id="map-content">
-            <img id="floor-plan" src="" alt="">
-            <div id="zones-layer"></div>
-            
-            <div id="empty-state">
-                <h1>SISTEMA PRONTO</h1>
-                <p>Conecte uma planilha ou carregue um Excel para iniciar.</p>
-            </div>
-        </div>
-        <div style="position: fixed; bottom: 10px; left: 20px; font-size: 11px; color: #666; font-family: monospace; z-index: 100;">
-            X,Y = COORDENADAS | META: 290 UPH
-        </div>
-    </div>
+    <!-- GRID DE RUAS -->
+    <main id="grid-container" class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
+        <!-- O JavaScript vai injetar os cards aqui -->
+    </main>
 
-    <!-- HUD LATERAL -->
-    <div id="hud-sidebar">
-        <div class="hud-header-container">
-            <div class="hud-title">STATUS GERAL (<span id="total-ilhas">0</span> Ilhas)</div>
-            <div class="btn-close-hud" onclick="toggleSidebar()">✕</div>
-        </div>
-        <div class="hud-list" id="hud-list">
-            <div style="text-align:center; padding:20px; color:#666;">Aguardando dados...</div>
-        </div>
-        <div class="hud-log">
-            <span class="log-title">LOG DE EVENTOS</span>
-            <div id="log-container"></div>
-        </div>
-    </div>
-
-    <!-- MODAL ORÁCULO -->
-    <div id="oracle-modal" class="modal-overlay" onclick="abrirOraculo()">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <h3>🔮 O ORÁCULO DE ALOCAÇÃO</h3>
-            <p style="font-size:12px; color:#aaa">Cálculo matemático para distribuição perfeita da equipe atual.</p>
-            
-            <div id="oracle-content">
-                <p style="color:#666; text-align:center">Carregue dados primeiro para usar o oráculo.</p>
-            </div>
-
-            <br>
-            <button class="btn btn-connect" style="width:100%" onclick="abrirOraculo()">FECHAR</button>
-        </div>
-    </div>
-
-    <!-- MODAL AJUDA -->
-    <div id="help-modal" class="modal-overlay" onclick="toggleHelp()">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <h3>📝 FORMATO DA PLANILHA</h3>
-            <p>O sistema aceita Excel (.xlsx) ou Google Sheets com estas colunas (não importa a ordem):</p>
-            <table>
-                <tr><th>Coluna</th><th>Exemplo</th></tr>
-                <tr><td>Setor</td><td>ILHA A</td></tr>
-                <tr><td>Rua</td><td>RUA 3</td></tr>
-                <tr><td>Volume</td><td>500</td></tr>
-                <tr><td>Equipe</td><td>2</td></tr>
-                <tr><td>Meta</td><td>60</td></tr>
-                <tr><td>X</td><td>50</td></tr>
-                <tr><td>Y</td><td>50</td></tr>
-            </table>
-            <br>
-            <button class="btn btn-connect" style="width:100%" onclick="toggleHelp()">FECHAR</button>
-        </div>
-    </div>
-
-    <!-- MODAL CONFIGURAÇÃO (AUTOMAÇÃO) -->
-    <div id="config-modal" class="modal-overlay" onclick="toggleConfig()">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <h3>⚙️ AUTOMAÇÃO & WEBHOOKS</h3>
-            <div class="input-group">
-                <label>URL do Webhook (n8n / Zapier)</label>
-                <input type="text" id="webhook-url" placeholder="https://seu-n8n.com/webhook/...">
-                <div class="hint">O sistema enviará um POST JSON quando uma ilha entrar em estado CRÍTICO.</div>
-            </div>
-            <div class="input-group">
-                <label>Configurações de Alerta</label>
-                <div style="display:flex; gap:10px; align-items:center; margin-top:5px;">
-                    <input type="checkbox" id="chk-audio" checked style="width:auto;"> <span style="font-size:12px">Alertas de Voz</span>
-                    <input type="checkbox" id="chk-notif" checked style="width:auto;"> <span style="font-size:12px">Notificações Navegador</span>
-                </div>
-            </div>
-            <button class="btn btn-connect" style="width:100%" onclick="salvarConfig()">SALVAR CONFIGURAÇÃO</button>
-        </div>
-    </div>
+    <!-- RODAPÉ FIXO DE STATUS -->
+    <div id="toast-area" class="fixed bottom-5 right-5 z-50"></div>
 
     <script>
-        const META_UPH = 290; 
-        const META_UPM = META_UPH / 60; 
-
-        // GLOBAL DATA STORE
-        let currentData = [];
-
-        let sheetUrl = "";
-        let webhookUrl = "";
-        let updateInterval = null;
-        let lastVoiceTime = 0;
-        let lastWebhookTime = {};
-
-        window.onload = () => {
-            const savedSheet = localStorage.getItem('dhl_sheet_v9');
-            const savedWebhook = localStorage.getItem('dhl_webhook_v9');
-            
-            if(savedSheet) {
-                document.getElementById('sheet-input').value = savedSheet;
-                conectarPlanilha();
-            }
-
-            if(savedWebhook) {
-                document.getElementById('webhook-url').value = savedWebhook;
-                webhookUrl = savedWebhook;
-            }
-
-            if (Notification.permission !== "granted") Notification.requestPermission();
-        }
-
-        // --- UI ---
-        function toggleSidebar() { document.getElementById('hud-sidebar').classList.toggle('hidden'); }
-        function toggleHelp() { toggleModal('help-modal'); }
-        function toggleConfig() { toggleModal('config-modal'); }
+        // =================================================================
+        // 1. CONFIGURAÇÕES E DADOS
+        // =================================================================
+        const PRODUTIVIDADE_META = 290;
         
-        function toggleModal(id) {
-            const el = document.getElementById(id);
-            el.style.display = el.style.display === 'flex' ? 'none' : 'flex';
+        // Dados Simulados Iniciais (Para quando resetar)
+        const layoutPadrao = [
+            { id: "A", volume: 1450 }, // Crítico
+            { id: "B", volume: 200 },  // Leve
+            { id: "C", volume: 890 },  // Médio
+            { id: "D", volume: 0 },    // Parado
+            { id: "E", volume: 550 },
+            { id: "F", volume: 2900 }, // Muito Crítico
+            { id: "G", volume: 1100 },
+            { id: "H", volume: 50 }
+        ];
+
+        // Variável de estado para Volumes (simulando leitura do site)
+        let dadosVolumes = JSON.parse(JSON.stringify(layoutPadrao));
+
+        // =================================================================
+        // 2. GESTÃO DE MEMÓRIA (LOCALSTORAGE)
+        // =================================================================
+        const STORAGE_KEY = 'OLHO_DE_DEUS_HTML_V1';
+
+        function carregarStaff() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            return data ? JSON.parse(data) : {};
         }
 
-        function abrirOraculo() { 
-            const modal = document.getElementById('oracle-modal');
-            if (modal.style.display !== 'flex') {
-                calcularOraculo();
-                modal.style.display = 'flex';
-            } else {
-                modal.style.display = 'none';
-            }
+        function salvarStaff(data) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            atualizarContadorTotal(data);
         }
 
-        function salvarConfig() {
-            const url = document.getElementById('webhook-url').value.trim();
-            webhookUrl = url;
-            localStorage.setItem('dhl_webhook_v9', url);
-            toggleConfig();
-            alert("Configurações salvas!");
+        let dadosStaff = carregarStaff();
+
+        function atualizarContadorTotal(data) {
+            let total = 0;
+            Object.values(data).forEach(arr => total += arr.length);
+            document.getElementById('total-staff').innerText = total;
         }
 
-        // --- LÓGICA DO ORÁCULO ---
-        function calcularOraculo() {
-            const content = document.getElementById('oracle-content');
-            
-            if (!currentData || currentData.length === 0) {
-                content.innerHTML = "Carregue dados primeiro.";
-                return;
-            }
+        // =================================================================
+        // 3. MOTOR DE RENDERIZAÇÃO
+        // =================================================================
+        function renderizar() {
+            const container = document.getElementById('grid-container');
+            container.innerHTML = '';
 
-            // 1. Totais
-            let totalVolume = 0;
-            let totalEquipe = 0;
-            let ilhas = [];
+            dadosVolumes.forEach(rua => {
+                // Garante que existe array de staff para a rua
+                if (!dadosStaff[rua.id]) dadosStaff[rua.id] = [];
+                const staffAtual = dadosStaff[rua.id];
 
-            currentData.forEach(row => {
-                let vol = row.Volume || 0;
-                let equipe = row.Equipe || 0;
-                if (vol > 0 || equipe > 0) {
-                    totalVolume += vol;
-                    totalEquipe += equipe;
-                    ilhas.push({ ...row, Volume: vol, Equipe: equipe });
-                }
-            });
+                // Cálculos
+                const necessario = Math.ceil(rua.volume / PRODUTIVIDADE_META);
+                const real = staffAtual.length;
+                const gap = necessario - real;
 
-            if (totalEquipe === 0) {
-                content.innerHTML = "Sem equipe disponível para alocar.";
-                return;
-            }
-
-            // 2. Cálculo
-            let ilhasComSobra = [];
-            let ilhasComFalta = [];
-
-            ilhas.forEach(ilha => {
-                let share = ilha.Volume / totalVolume;
-                let ideal = Math.round(share * totalEquipe);
-                if (ideal < 1 && ilha.Volume > 100) ideal = 1;
+                // Definição de Status
+                let statusClass = 'status-stable';
+                let panelClass = 'bg-stable text-stable';
+                let icon = '<i class="fas fa-check-circle"></i>';
+                let msg = 'EQUIPE COMPLETA';
                 
-                let diff = ilha.Equipe - ideal;
-                
-                if (diff > 0) ilhasComSobra.push({ nome: ilha.Setor, sobra: diff });
-                if (diff < 0) ilhasComFalta.push({ nome: ilha.Setor, falta: Math.abs(diff) });
-            });
-
-            // 3. Matchmaker
-            let htmlMovimentos = "";
-            
-            ilhasComFalta.forEach(falta => {
-                for (let i = 0; i < ilhasComSobra.length; i++) {
-                    let doador = ilhasComSobra[i];
-                    if (doador.sobra > 0 && falta.falta > 0) {
-                        let transferir = Math.min(doador.sobra, falta.falta);
-                        
-                        htmlMovimentos += `
-                        <div class="move-card">
-                            <span>Mover <b class="move-highlight">${transferir}</b> logs</span>
-                            <span>${doador.nome} <span class="move-arrow">➜</span> ${falta.nome}</span>
-                        </div>`;
-                        
-                        doador.sobra -= transferir;
-                        falta.falta -= transferir;
-                    }
-                }
-            });
-
-            if (htmlMovimentos === "") {
-                content.innerHTML = `<div style="text-align:center; color:#00ff00; font-weight:bold; padding:20px;">✅ EQUIPE JÁ ESTÁ OTIMIZADA!</div>`;
-            } else {
-                content.innerHTML = `
-                    <div style="font-size:12px; margin-bottom:10px;">
-                        Volume Total: <b>${totalVolume}</b> | Equipe Total: <b>${totalEquipe}</b>
-                    </div>
-                    <div class="oracle-header">SUGESTÕES DE MOVIMENTAÇÃO</div>
-                    ${htmlMovimentos}
-                `;
-            }
-        }
-
-        // --- LEITOR DE EXCEL LOCAL ---
-        function lerExcel(input) {
-            const file = input.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                const jsonData = XLSX.utils.sheet_to_json(worksheet);
-                currentData = normalizarDados(jsonData);
-                if(updateInterval) clearInterval(updateInterval);
-                renderizar(currentData);
-                document.getElementById('empty-state').style.display = 'none';
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        function normalizarDados(dados) {
-            return dados.map(row => {
-                const getVal = (keys) => {
-                    for (let k of Object.keys(row)) {
-                        if (keys.includes(k.toLowerCase().trim())) return row[k];
-                    }
-                    return undefined;
-                };
-                return {
-                    Setor: getVal(['setor', 'ilha', 'area', 'nome']) || "Desconhecido",
-                    Rua: getVal(['rua', 'corredor', 'local']) || "",
-                    Volume: parseInt(getVal(['volume', 'pacotes', 'qtd', 'pendente'])) || 0,
-                    Equipe: parseInt(getVal(['equipe', 'logs', 'pessoas', 'headcount'])) || 0,
-                    Meta: parseInt(getVal(['meta', 'tempo', 'sla'])) || 60,
-                    X: parseFloat(getVal(['x', 'posx', 'coluna'])),
-                    Y: parseFloat(getVal(['y', 'posy', 'linha']))
-                };
-            });
-        }
-
-        // --- CONEXÃO GOOGLE SHEETS ---
-        function conectarPlanilha() {
-            const input = document.getElementById('sheet-input').value.trim();
-            if(!input) return alert("Cole o link CSV!");
-            sheetUrl = input;
-            localStorage.setItem('dhl_sheet_v9', input);
-            fetchData();
-            if(updateInterval) clearInterval(updateInterval);
-            updateInterval = setInterval(fetchData, 3000);
-        }
-
-        function fetchData() {
-            Papa.parse(sheetUrl, {
-                download: true, header: true, dynamicTyping: true,
-                complete: (res) => {
-                    currentData = normalizarDados(res.data);
-                    renderizar(currentData);
-                    document.getElementById('empty-state').style.display = 'none';
-                },
-                error: (err) => console.log(err)
-            });
-        }
-
-        function carregarFundo(input) {
-            if (input.files && input.files[0]) {
-                var reader = new FileReader();
-                reader.onload = function (e) {
-                    const img = document.getElementById('floor-plan');
-                    const mapContent = document.getElementById('map-content');
-                    img.src = e.target.result;
-                    img.style.display = 'block';
-                    mapContent.style.width = "fit-content";
-                    mapContent.style.height = "fit-content";
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
-        // --- RENDERIZAÇÃO ---
-        function renderizar(data) {
-            const layer = document.getElementById('zones-layer');
-            const list = document.getElementById('hud-list');
-            layer.innerHTML = "";
-            list.innerHTML = "";
-
-            let processed = data.filter(r => r.Setor).map(row => {
-                let vol = row.Volume || 0; 
-                let tempoAlvoSeguranca = (row.Meta || 60) * 0.9;
-                let velocidadeNecessaria = vol / tempoAlvoSeguranca;
-                let pessoasIdeais = Math.ceil(velocidadeNecessaria / META_UPM);
-                if (vol > 0 && pessoasIdeais < 1) pessoasIdeais = 1;
-                if (vol === 0) pessoasIdeais = 0;
-
-                let gap = pessoasIdeais - (row.Equipe || 0);
-                
-                let capReal = (row.Equipe || 0) * META_UPM;
-                let tempoFila = capReal > 0 ? vol / capReal : 999;
-
-                let status = "OK";
-                if (gap > 0) status = "CRITICO";
-                else if (gap < 0) status = "FOLGA";
-
-                return { ...row, Volume: vol, tempoFila, status, gap };
-            }).sort((a,b) => a.status === 'CRITICO' ? -1 : 1);
-
-            document.getElementById('total-ilhas').innerText = processed.length;
-
-            processed.forEach(row => {
-                let cssClass = "";
-                let actionHtml = "";
-                let color = "#fff";
-                let barColor = "#333";
-                let ruaText = row.Rua ? row.Rua : ""; 
-
-                if (row.status === "CRITICO") {
-                    cssClass = "status-critico";
-                    color = "#d40511";
-                    barColor = "#d40511";
-                    let add = Math.abs(row.gap);
-                    actionHtml = `<div class="action-box act-add">🚨 +${add} LOGS NA ${ruaText}</div>`;
-                    triggerAutomation(row, add);
-
-                } else if (row.status === "FOLGA") {
-                    cssClass = "status-folga";
-                    color = "#ffcc00";
-                    barColor = "#ffcc00";
-                    let remove = Math.abs(row.gap);
-                    if ((row.Equipe - remove) < 1 && row.Volume > 0) remove = row.Equipe - 1;
-
-                    if (remove > 0) {
-                        actionHtml = `<div class="action-box act-remove">🔻 LIBERAR ${remove} LOGS</div>`;
-                    } else {
-                        cssClass = "status-ok"; 
-                        color = "#00ff00";
-                        barColor = "#00ff00";
-                        actionHtml = `<div class="action-box act-ok">ESTÁVEL</div>`;
-                    }
-
-                } else {
-                    cssClass = "status-ok";
-                    color = "#00ff00";
-                    barColor = "#00ff00";
-                    actionHtml = `<div class="action-box act-ok">ESTÁVEL</div>`;
+                if (rua.volume === 0 && real > 0) {
+                    statusClass = 'status-warning';
+                    panelClass = 'bg-warning text-warning';
+                    icon = '<i class="fas fa-people-carry"></i>';
+                    msg = 'MOVER EQUIPE (Rua Parada)';
+                } else if (gap > 0 && rua.volume > 0) {
+                    statusClass = 'status-critical';
+                    panelClass = 'bg-critical text-critical';
+                    icon = '<i class="fas fa-exclamation-triangle"></i>';
+                    msg = `FALTAM ${gap} PESSOAS`;
+                } else if (gap < 0) {
+                    statusClass = 'status-warning';
+                    panelClass = 'bg-warning text-warning';
+                    icon = '<i class="fas fa-arrow-down"></i>';
+                    msg = `REDUZIR ${Math.abs(gap)} PESSOAS`;
                 }
 
-                // Card Mapa
-                let card = document.createElement('div');
-                card.className = `zone-card ${cssClass}`;
-                let posX = row.X !== undefined ? row.X : 50;
-                let posY = row.Y !== undefined ? row.Y : 50;
-                card.style.left = posX + "%";
-                card.style.top = posY + "%";
-                let percentBar = Math.min((row.tempoFila / (row.Meta || 60)) * 100, 100);
+                // Criação do Elemento HTML
+                const card = document.createElement('div');
+                card.className = `lane-card ${statusClass} animate-in`;
+                
+                // Configuração de Eventos de Drag & Drop no CARD
+                card.ondragover = (e) => handleDragOver(e);
+                card.ondragleave = (e) => handleDragLeave(e);
+                card.ondrop = (e) => handleDrop(e, rua.id);
 
                 card.innerHTML = `
-                    <div class="zone-header">${row.Setor}</div>
-                    <div class="card-body">
-                        <div style="font-size:10px; color:#aaa; text-align:center; margin-top:-5px;">${ruaText}</div>
-                        <div class="metric-grid">
-                            <div class="metric-item"><span class="metric-lbl">VOLUME</span><span class="metric-val">${row.Volume}</span></div>
-                            <div class="metric-item"><span class="metric-lbl">FILA (MIN)</span><span class="metric-val" style="color:${color}">${row.tempoFila.toFixed(0)}</span></div>
-                        </div>
-                        <div class="vol-bar-bg"><div class="vol-bar-fill" style="width:${percentBar}%; background:${barColor}"></div></div>
-                        ${actionHtml}
-                    </div>`;
-                layer.appendChild(card);
+                    <div class="lane-header">
+                        <span class="lane-title">RUA ${rua.id}</span>
+                        <i class="fas fa-dolly lane-icon"></i>
+                    </div>
 
-                // Item Lista
-                list.innerHTML += `
-                    <div class="list-row">
-                        <div style="display:flex; align-items:center;">
-                            <div class="status-led" style="background:${color}"></div>
-                            <div><div class="ilha-nome">${row.Setor}</div><span class="rua-nome">${ruaText}</span></div>
+                    <div class="lane-metrics">
+                        <div class="lane-volume">${rua.volume.toLocaleString()}</div>
+                        <div class="lane-label">Pacotes Pendentes</div>
+                    </div>
+
+                    <div class="smart-panel ${panelClass}">
+                        <div class="flex items-center gap-2 font-bold text-sm mb-2">
+                            ${icon} <span>${msg}</span>
                         </div>
-                        <div style="text-align:right">
-                            <div style="font-weight:bold">${row.Volume}</div>
-                            <div style="font-size:10px; color:${color}">${row.tempoFila.toFixed(0)}m</div>
+                        
+                        <div class="flex justify-between text-xs opacity-80 mb-3 font-mono">
+                            <span>NEC: <strong>${necessario}</strong></span>
+                            <span>REAL: <strong>${real}</strong></span>
                         </div>
-                    </div>`;
+
+                        <!-- ÁREA DE STAFF -->
+                        <div class="flex flex-wrap gap-1 min-h-[35px] mb-3" id="staff-area-${rua.id}">
+                            ${staffAtual.map((nome, idx) => `
+                                <div class="staff-tag" 
+                                     draggable="true" 
+                                     ondragstart="handleDragStart(event, '${rua.id}', '${nome}')"
+                                     ondragend="handleDragEnd(event)">
+                                    <i class="fas fa-grip-vertical text-xs opacity-50"></i>
+                                    ${nome}
+                                    <i class="fas fa-times btn-remove" onclick="removerStaff('${rua.id}', ${idx})"></i>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <!-- INPUT -->
+                        <div class="flex gap-2">
+                            <input type="text" id="input-${rua.id}" 
+                                   class="bg-slate-900 border border-slate-600 text-white text-sm rounded px-3 py-1.5 w-full focus:outline-none focus:border-blue-500 transition placeholder-slate-500"
+                                   placeholder="Adicionar nome..."
+                                   onkeypress="checkEnter(event, '${rua.id}')">
+                            <button onclick="adicionarStaff('${rua.id}')" 
+                                    class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded transition shadow-md">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(card);
             });
-        }
-
-        // --- AUTOMAÇÃO ---
-        function triggerAutomation(row, gap) {
-            const now = Date.now();
-            const lastTime = lastWebhookTime[row.Setor] || 0;
             
-            if (now - lastTime > 300000) {
-                const logDiv = document.getElementById('log-container');
-                const timeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                logDiv.innerHTML = `<div class="log-item"><span class="log-time">${timeStr}</span> <span class="log-crit">${row.Setor}</span> CRÍTICO! Vol: ${row.Volume}</div>` + logDiv.innerHTML;
+            atualizarContadorTotal(dadosStaff);
+        }
 
-                if (document.getElementById('chk-notif').checked && Notification.permission === "granted") {
-                    new Notification(`ALERTA DHL: ${row.Setor}`, {
-                        body: `Volume Crítico: ${row.Volume}. Adicionar +${gap > 0 ? gap : 1} Logs.`,
-                        icon: "https://upload.wikimedia.org/wikipedia/commons/b/b9/DHL_Logo.svg"
-                    });
-                }
+        // =================================================================
+        // 4. LÓGICA DE DRAG & DROP (ARRASTAR E SOLTAR)
+        // =================================================================
+        
+        let draggedItem = null;
 
-                if (webhookUrl) {
-                    const payload = {
-                        setor: row.Setor,
-                        rua: row.Rua,
-                        volume: row.Volume,
-                        equipe: row.Equipe,
-                        acao: gap > 0 ? `Adicionar ${gap} logs` : "Cobrar Ritmo",
-                        timestamp: new Date().toISOString()
-                    };
-                    
-                    fetch(webhookUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    }).catch(e => console.error("Erro webhook", e));
-                }
-                lastWebhookTime[row.Setor] = now;
+        function handleDragStart(e, origemId, nome) {
+            draggedItem = { origem: origemId, nome: nome };
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', JSON.stringify(draggedItem)); // Para compatibilidade
+            
+            // Visual
+            setTimeout(() => e.target.classList.add('dragging'), 0);
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            document.querySelectorAll('.lane-card').forEach(c => c.classList.remove('drag-over'));
+            draggedItem = null;
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault(); // Necessário para permitir drop
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop(e, destinoId) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+
+            if (!draggedItem) return;
+
+            const { origem, nome } = draggedItem;
+
+            if (origem === destinoId) return; // Soltou na mesma rua
+
+            // 1. Remove da Origem (procura pelo nome e remove a primeira ocorrência)
+            const indexOrigem = dadosStaff[origem].indexOf(nome);
+            if (indexOrigem > -1) {
+                dadosStaff[origem].splice(indexOrigem, 1);
+            }
+
+            // 2. Adiciona no Destino
+            dadosStaff[destinoId].push(nome);
+
+            // 3. Salva e Renderiza
+            salvarStaff(dadosStaff);
+            renderizar();
+            
+            mostrarToast(`Movido: <b>${nome}</b> da Rua ${origem} para Rua ${destinoId}`);
+        }
+
+        // =================================================================
+        // 5. FUNÇÕES DE AÇÃO E UTILITÁRIOS
+        // =================================================================
+
+        function adicionarStaff(idRua) {
+            const input = document.getElementById(`input-${idRua}`);
+            const nome = input.value.trim();
+
+            if (nome) {
+                dadosStaff[idRua].push(nome);
+                salvarStaff(dadosStaff);
+                input.value = '';
+                renderizar();
+            } else {
+                input.focus();
             }
         }
 
-        function falar(texto) {
-            if ('speechSynthesis' in window) {
-                const u = new SpeechSynthesisUtterance(texto);
-                u.lang = 'pt-BR'; u.rate = 1.2;
-                window.speechSynthesis.speak(u);
+        function removerStaff(idRua, index) {
+            dadosStaff[idRua].splice(index, 1);
+            salvarStaff(dadosStaff);
+            renderizar();
+        }
+
+        function checkEnter(e, idRua) {
+            if (e.key === 'Enter') adicionarStaff(idRua);
+        }
+
+        function simularVolumes() {
+            // Altera aleatoriamente os volumes para testar a responsividade do painel
+            dadosVolumes.forEach(rua => {
+                const variacao = Math.floor(Math.random() * 400) - 100; // -100 a +300
+                rua.volume = Math.max(0, rua.volume + variacao);
+            });
+            renderizar();
+            mostrarToast('<i class="fas fa-sync"></i> Volumes simulados atualizados');
+        }
+
+        function resetarTudo() {
+            if(confirm('Tem certeza? Isso apagará todos os nomes da equipe.')) {
+                localStorage.removeItem(STORAGE_KEY);
+                dadosStaff = {};
+                dadosVolumes = JSON.parse(JSON.stringify(layoutPadrao)); // Reseta volumes também
+                renderizar();
+                mostrarToast('Sistema resetado com sucesso', 'error');
             }
         }
+
+        function mostrarToast(html, type='info') {
+            const toastArea = document.getElementById('toast-area');
+            const toast = document.createElement('div');
+            const color = type === 'error' ? 'bg-red-600' : 'bg-blue-600';
+            
+            toast.className = `${color} text-white px-4 py-3 rounded-lg shadow-xl mb-3 flex items-center gap-3 animate-in min-w-[250px]`;
+            toast.innerHTML = html;
+            
+            toastArea.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // INICIALIZAÇÃO
+        renderizar();
+
     </script>
 </body>
 </html>
+
+     
+            
