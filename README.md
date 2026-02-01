@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Olho de Deus - Torre de Controle Logística</title>
+    <title>Mapa de chao - Torre de Controle Logística</title>
     <!-- Tailwind CSS (Estilos Modernos) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome (Ícones) -->
